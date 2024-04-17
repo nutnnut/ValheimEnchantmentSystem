@@ -7,7 +7,6 @@
 			<InputAssemblies Include="$(OutputPath)\YamlDotNet.dll" />
 			<InputAssemblies Include="$(OutputPath)\ItemDataManager.dll" />
 			<InputAssemblies Include="$(OutputPath)\JewelcraftingAPI.dll" />
-			<InputAssemblies Include="$(OutputPath)\BackpacksAPI.dll" />
 		</ItemGroup>
 		<ILRepack Parallel="true" DebugInfo="true" Internalize="false" InputAssemblies="@(InputAssemblies)" OutputFile="$(TargetPath)"
 				  TargetKind="SameAsPrimaryAssembly" LibraryPath="$(OutputPath)" RepackDropAttribute="RepackDropAttribute"/>

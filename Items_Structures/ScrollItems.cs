@@ -445,10 +445,10 @@ public static class ScrollItems
         {
             foreach (InventoryGrid.Element element in __instance.m_elements)
             {
-                element.m_go.transform.Find("VES_Combine").gameObject.SetActive(false);
+                element.m_go.transform.Find("VES_Combine").gameObject.SetActive(false); 
             }
             if (!AllowScrollCombine.Value) return;
-            foreach (ItemDrop.ItemData item in __instance.m_inventory.GetAllItems().Where(i => UpgradeScrollHashset.Contains(i.m_dropPrefab.name)))
+            foreach (ItemDrop.ItemData item in __instance.m_inventory.GetAllItems().Where(i => UpgradeScrollHashset.Contains(i.m_dropPrefab?.name)))
             {
                 switch (RequiredLine_Config.Value)
                 {

@@ -11,30 +11,30 @@ namespace kg.ValheimEnchantmentSystem
     [BepInPlugin(GUID, PLUGIN_NAME, PLUGIN_VERSION)]
     [BepInDependency("org.bepinex.plugins.jewelcrafting", BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("com.bepis.bepinex.configurationmanager", BepInDependency.DependencyFlags.SoftDependency)]
-    [BepInDependency("org.bepinex.plugins.backpacks", BepInDependency.DependencyFlags.SoftDependency)]
     public class ValheimEnchantmentSystem : BaseUnityPlugin
     {
         private const string GUID = "kg.ValheimEnchantmentSystem";
         private const string PLUGIN_NAME = "Valheim Enchantment System";
-        private const string PLUGIN_VERSION = "1.6.4";
+        private const string PLUGIN_VERSION = "1.6.8";
         
         public static ValheimEnchantmentSystem _thistype;  
         public static AssetBundle _asset; 
         public static ConfigFile SyncedConfig;
         public static ConfigFile ItemConfig;
-        public static string ConfigFolder; 
+        public static string ConfigFolder;  
         public static readonly Harmony Harmony = new(GUID);  
         public static readonly ConfigSync ConfigSync = new(GUID)
-        { 
-            DisplayName = GUID, ModRequired = true, 
+        {  
+            DisplayName = GUID, ModRequired = true,  
             MinimumRequiredVersion = PLUGIN_VERSION, CurrentVersion = PLUGIN_VERSION,
-            IsLocked = true
+            IsLocked = true  
         };
         private enum WorkingAs { Client, Server }
-        public static readonly bool NoGraphics = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null;
+        public static bool NoGraphics;
          
         private void Awake()
         {
+            NoGraphics = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null;
             _thistype = this;
             WorkingAs WorkingAsType = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null ? WorkingAs.Server : WorkingAs.Client;
             JSON.Parameters = new JSONParameters
@@ -83,6 +83,7 @@ namespace kg.ValheimEnchantmentSystem
                     WorkingAs.Server => t.GetCustomAttribute<ClientOnlyPatch>() == null, 
                     _ => true
                 }).Do(type => Harmony.CreateClassProcessor(type).Patch());
+            
         } 
  
         private void Update()
@@ -97,7 +98,7 @@ namespace kg.ValheimEnchantmentSystem
         {
             Other_Mods_APIs.Start();
         }
-
+        
         private static AssetBundle GetAssetBundle(string filename) 
         { 
             Assembly execAssembly = Assembly.GetExecutingAssembly();

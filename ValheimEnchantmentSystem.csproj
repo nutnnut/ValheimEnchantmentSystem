@@ -41,25 +41,22 @@
           <HintPath>Libs\0Harmony.dll</HintPath>
         </Reference>
         <Reference Include="assembly_guiutils">
-          <HintPath>Libs\assembly_guiutils.dll</HintPath>
-        </Reference>
-        <Reference Include="assembly_postprocessing">
-          <HintPath>..\..\SteamLibrary\steamapps\common\Valheim\valheim_Data\Managed\assembly_postprocessing.dll</HintPath>
+          <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\assembly_guiutils_publicized.dll</HintPath>
         </Reference>
         <Reference Include="assembly_utils">
-          <HintPath>Libs\assembly_utils.dll</HintPath>
+          <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\assembly_utils_publicized.dll</HintPath>
         </Reference>
         <Reference Include="assembly_valheim">
-          <HintPath>Libs\assembly_valheim.dll</HintPath>
-        </Reference>
-        <Reference Include="Backpacks">
-          <HintPath>Libs\BackpacksAPI.dll</HintPath>
+          <HintPath>..\..\..\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\assembly_valheim_publicized.dll</HintPath>
         </Reference>
         <Reference Include="BepInEx">
           <HintPath>Libs\BepInEx.dll</HintPath>
         </Reference>
         <Reference Include="fastJSON">
           <HintPath>Libs\fastJSON.dll</HintPath>
+        </Reference>
+        <Reference Include="gui_framework">
+          <HintPath>..\Marketplace\Libs\gui_framework.dll</HintPath>
         </Reference>
         <Reference Include="ItemDataManager">
           <HintPath>Libs\ItemDataManager.dll</HintPath>
@@ -71,9 +68,6 @@
         <Reference Include="System.Core"/>
         <Reference Include="System.Data"/>
         <Reference Include="System.Xml"/>
-        <Reference Include="ui_lib">
-          <HintPath>Libs\ui_lib.dll</HintPath>
-        </Reference>
         <Reference Include="Unity.TextMeshPro">
           <HintPath>Libs\Unity.TextMeshPro.dll</HintPath>
         </Reference>
@@ -324,11 +318,11 @@
     <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
 
     <Target Name="Copy" AfterTargets="ILRepack">
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;D:\SteamLibrary\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll&quot;" />
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;D:\SteamLibrary\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll&quot;" />
+        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll&quot;" />
+        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll&quot;" />
         <Exec Command="pdb2mdb.exe &quot;$(TargetDir)$(AssemblyName).dll&quot;" />
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;D:\SteamLibrary\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;D:\SteamLibrary\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />
+        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />
+        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />
 
         <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;$(ProjectDir)ThunderstorePackage\$(AssemblyName).dll&quot;" />
     </Target>

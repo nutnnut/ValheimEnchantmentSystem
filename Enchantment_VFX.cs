@@ -403,6 +403,7 @@ public static class Enchantment_VFX
         [UsedImplicitly]
         private static void Postfix(ItemStand __instance, bool __state)
         {
+            if (!__instance.m_nview.IsValid()) return;
             if(!__state) return;
             GameObject visualItem = __instance.m_visualItem;
             if (!visualItem) return;   
@@ -464,7 +465,6 @@ public static class Enchantment_VFX
     [ClientOnlyPatch]
     private static class Hud_Awake_Patch
     {
-        private static bool firsttime;
         public static HotkeyBar barRef;
         
         [UsedImplicitly]
@@ -472,8 +472,7 @@ public static class Enchantment_VFX
         {
             HotkeyBar bar = __instance.m_rootObject.transform.Find("HotKeyBar")?.GetComponent<HotkeyBar>();
             barRef = bar;
-            if (!bar || firsttime) return;
-            firsttime = true;
+            if (!bar) return;
             Transform transform = bar.m_elementPrefab.transform;
             GameObject newIcon = Object.Instantiate(HOTBAR_PART);
             newIcon!.transform.SetParent(transform);

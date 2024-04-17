@@ -12,7 +12,7 @@ public static class DiscordWebhook
         if (!Uri.TryCreate(link, UriKind.Absolute, out _)) return;
         Task.Run(async () =>
         {
-            string json = "{\n\"avatar_url\": \"\",\n  \"content\": \"" + $"{msg}" + "\",\n  \"embeds\": [],\n  \"components\": []\n}";
+            string json = "{\"content\": \"" + $"{msg}" + "\"}";
             HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(link);
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Method = "POST";

@@ -47,7 +47,7 @@ public static class Enchantment_Core
 
         public override void Load()
         {
-            if(string.IsNullOrEmpty(Value)) return;
+            if (string.IsNullOrEmpty(Value)) return;
             level = int.TryParse(Value, out int lvl) ? lvl : 0;
         }
 
@@ -111,7 +111,7 @@ public static class Enchantment_Core
             float random = Random.Range(0f, 100f);
             SyncedData.Chance_Data chanceData = GetEnchantmentChanceData();
             float additionalChance = SyncedData.GetAdditionalEnchantmentChance();
-            destroy = chanceData.destroy > 0 && random <= chanceData.destroy;
+            destroy = chanceData.destroy > 0 && Random.Range(0f, 100f) <= chanceData.destroy;
             return random <= chanceData.success + additionalChance;
         }
 

@@ -11,8 +11,8 @@ public static class SettingsUI
     [ClientOnlyPatch]
     static class Menu_Start_Patch
     {
-        private static bool firstInit = true;
-
+        private static bool firstInit = true; 
+ 
         [UsedImplicitly]
         private static void Postfix(FejdStartup __instance)
         {
@@ -23,8 +23,8 @@ public static class SettingsUI
             if (!gameplay) gameplay = settingsPrefab.transform.Find("Panel/TabButtons/Tabs/Gameplay");
             if (!gameplay) return;
             Transform newButton = UnityEngine.Object.Instantiate(gameplay);
-            newButton.transform.Find("KeyHint").gameObject.SetActive(false);
-            newButton.SetParent(gameplay.parent, false);
+            newButton.transform.Find("KeyHint").gameObject.SetActive(false); 
+            newButton.SetParent(gameplay.parent, false); 
             newButton.name = "kg_Enchantment";
             newButton.SetAsLastSibling();
             Transform textTransform = newButton.transform.Find("Label");
@@ -51,7 +51,7 @@ public static class SettingsUI
         }
     }
 
-    public class VesSettings : Fishlabs.Valheim.SettingsBase
+    public class VesSettings : Valheim.SettingsGui.SettingsBase
     {
         public override void FixBackButtonNavigation(Button backButton)
         {
