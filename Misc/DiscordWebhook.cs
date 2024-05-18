@@ -1,6 +1,5 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
-using kg.ValheimEnchantmentSystem.UI;
 
 namespace kg.ValheimEnchantmentSystem.Misc;
 

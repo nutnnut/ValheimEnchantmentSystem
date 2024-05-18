@@ -471,16 +471,16 @@ public static class Enchantment_Core
         }
     }
     
-    [HarmonyPatch(typeof(Player),nameof(Player.UpdateMovementModifier))]
+    [HarmonyPatch(typeof(Player),nameof(Player.GetEquipmentMovementModifier))]
     [ClientOnlyPatch] 
     private static class Player_UpdateMovementModifier_Patch
     {
         [UsedImplicitly]
-        private static void Postfix(Player __instance)
+        private static void Postfix(Player __instance, ref float __result)
         {
             foreach (var en in __instance.EquippedEnchantments())
             {
-                if (en.Stats is {} stats) __instance.m_equipmentMovementModifier += stats.movement_speed / 100f;
+                if (en.Stats is {} stats) __result += stats.movement_speed / 100f;
             }
         }
     }

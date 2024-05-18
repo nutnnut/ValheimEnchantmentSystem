@@ -1,5 +1,4 @@
-﻿using System.Configuration;
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Misc;
 using TMPro;
 

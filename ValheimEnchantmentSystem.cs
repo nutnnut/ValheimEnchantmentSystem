@@ -1,6 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using JetBrains.Annotations;
-using kg.ValheimEnchantmentSystem.Misc;
+﻿using kg.ValheimEnchantmentSystem.Misc;
 using kg.ValheimEnchantmentSystem.UI;
 using LocalizationManager;
 using ServerSync;
@@ -14,8 +12,11 @@ namespace kg.ValheimEnchantmentSystem
     public class ValheimEnchantmentSystem : BaseUnityPlugin
     {
         private const string GUID = "kg.ValheimEnchantmentSystem";
-        private const string PLUGIN_NAME = "Valheim Enchantment System";
-        private const string PLUGIN_VERSION = "1.6.8";
+        private const string PLUGIN_NAME = "Valheim Enchantment System"; 
+        private const string PLUGIN_VERSION = "1.6.9";
+         
+       
+                
         
         public static ValheimEnchantmentSystem _thistype;  
         public static AssetBundle _asset; 
@@ -23,7 +24,7 @@ namespace kg.ValheimEnchantmentSystem
         public static ConfigFile ItemConfig;
         public static string ConfigFolder;  
         public static readonly Harmony Harmony = new(GUID);  
-        public static readonly ConfigSync ConfigSync = new(GUID)
+        public static readonly ConfigSync ConfigSync = new(GUID) 
         {  
             DisplayName = GUID, ModRequired = true,  
             MinimumRequiredVersion = PLUGIN_VERSION, CurrentVersion = PLUGIN_VERSION,

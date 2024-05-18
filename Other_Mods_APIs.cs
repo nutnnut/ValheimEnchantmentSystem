@@ -1,5 +1,5 @@
 ﻿//using Backpacks;
-using ItemDataManager;
+
 using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Configs;
 using kg.ValheimEnchantmentSystem.Misc;

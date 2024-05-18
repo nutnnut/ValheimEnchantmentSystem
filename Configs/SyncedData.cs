@@ -1,5 +1,4 @@
-﻿using System.CodeDom;
-using System.Text;
+﻿using System.Text;
 using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Misc;
 using ServerSync;

@@ -1,5 +1,5 @@
 ﻿using YamlDotNet.Serialization;
-using AutoISP;
+
 namespace kg.ValheimEnchantmentSystem.Configs;
 
 public static class Defaults
