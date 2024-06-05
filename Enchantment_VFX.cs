@@ -14,7 +14,7 @@ public static class Enchantment_VFX
     private static readonly int TintColor = Shader.PropertyToID("_TintColor");
 
     private static GameObject VES_MPE;
-    private static readonly List<float> INTENSITY = new List<float> { 220f, 80f, 1000f, 10f };
+    private static readonly List<float> INTENSITY = new List<float> { 22f, 8f, 100f, 1f };
 
     public static readonly List<Material> VFXs = new List<Material>();
 
@@ -79,15 +79,12 @@ public static class Enchantment_VFX
     public static void AttachMeshEffect(GameObject item, Color c, int variant, bool isArmor = false)
     {
         if (!_enableMainVFX.Value) return;
-        if (!isArmor)
+        if (item.AddComponent<Light>() is {} l)
         {
-            if (item.AddComponent<Light>() is {} l)
-            {
-                l.type = LightType.Point;
-                l.color = c;
-                l.intensity *= 2.5f * c.a;
-                l.range = 9f;
-            }
+            l.type = LightType.Point;
+            l.color = c;
+            l.intensity *= isArmor ? 0.25f * c.a : 1.0f * c.a;
+            l.range = 9f;
         }
      
         List<Renderer> renderers = item.GetComponentsInChildren<SkinnedMeshRenderer>(true).Cast<Renderer>().Concat(item.GetComponentsInChildren<MeshRenderer>(true)).ToList();
@@ -96,7 +93,7 @@ public static class Enchantment_VFX
             List<Material> list = renderer.sharedMaterials.ToList();
             list.Add(VFXs[variant]);
             renderer.sharedMaterials = list.ToArray();
-            if (isArmor) continue;
+            // if (isArmor) continue;
             bool isSkinned = renderer is SkinnedMeshRenderer;
             if (isSkinned)
             {
@@ -114,7 +111,7 @@ public static class Enchantment_VFX
             float boundsMag = renderer.bounds.size.magnitude;
             float lossyMag = item.transform.lossyScale.magnitude;
             Color.RGBToHSV(c, out float h, out float s, out float v);
-            Color mepC = Color.HSVToRGB(h, s, v * 5f, false);
+            Color mepC = Color.HSVToRGB(h, s, v * 1f, false);
              
             foreach (ParticleSystem ps in vfx.GetComponentsInChildren<ParticleSystem>(true))
             {
@@ -129,7 +126,7 @@ public static class Enchantment_VFX
         }
         foreach (Material material in renderers.SelectMany(m => m.materials)) 
                 if (material.name.Contains("Enchantment_VFX_Mat"))
-                    material.SetColor(TintColor, isArmor ? c : c * INTENSITY[variant]);
+                    material.SetColor(TintColor, c * INTENSITY[variant]);
     }
 
     [HarmonyPatch(typeof(VisEquipment), nameof(VisEquipment.SetLeftHandEquipped))]

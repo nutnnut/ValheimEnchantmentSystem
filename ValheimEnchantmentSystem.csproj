@@ -1,341 +1,335 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props"
-            Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')"/>
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{02E7D016-77BE-40E0-9D13-8656CD0A4FD3}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>kg.ValheimEnchantmentSystem</RootNamespace>
+    <AssemblyName>kg.ValheimEnchantmentSystem</AssemblyName>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>full</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugSymbols>true</DebugSymbols>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="Configs\AutoISP.cs" />
+    <Compile Include="Configs\BepInEx_ConfigurationManager.cs" />
+    <Compile Include="Configs\Defaults.cs" />
+    <Compile Include="Configs\SyncedData.cs" />
+    <Compile Include="Enchantment_Core.cs" />
+    <Compile Include="Enchantment_Skill.cs" />
+    <Compile Include="Enchantment_VFX.cs" />
+    <Compile Include="GlobalUsings.cs" />
+    <Compile Include="Items_Structures\ScrollItems.cs" />
+    <Compile Include="Items_Structures\BuildPieces.cs" />
+    <Compile Include="Managers\AnimationSpeedManager.cs" />
+    <Compile Include="Managers\LocalizationManager.cs" />
+    <Compile Include="Misc\Attributes.cs" />
+    <Compile Include="Misc\Convertions.cs" />
+    <Compile Include="Misc\DiscordWebhook.cs" />
+    <Compile Include="Misc\External_AsmLoad.cs" />
+    <Compile Include="Other_Mods_APIs.cs" />
+    <Compile Include="StatsPanel.cs" />
+    <Compile Include="UI\InfoUI.cs" />
+    <Compile Include="UI\MainUI.cs" />
+    <Compile Include="UI\NotificationsUI.cs" />
+    <Compile Include="UI\SettingsUI.cs" />
+    <Compile Include="Utils\TerminalCommands.cs" />
+    <Compile Include="Utils\Utils.cs" />
+    <Compile Include="ValheimEnchantmentSystem.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Managers\ServerSync.cs" />
+    <Compile Include="Managers\ItemManager.cs" />
+    <Compile Include="Managers\SkillManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\kg_enchantment" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="GithubReadme\app.js" />
+    <Content Include="GithubReadme\EnchantmentScrolls.md" />
+    <Content Include="GithubReadme\InstallationAndConfigs.md" />
+    <Content Include="GithubReadme\ItemEnchantment.md" />
+    <Content Include="GithubReadme\Localization.md" />
+    <Content Include="GithubReadme\MainInfo.md" />
+    <Content Include="GithubReadme\node use.bat" />
+    <Content Include="GithubReadme\node_modules\.bin\markdown-it" />
+    <Content Include="GithubReadme\node_modules\.bin\markdown-it.cmd" />
+    <Content Include="GithubReadme\node_modules\.bin\markdown-it.ps1" />
+    <Content Include="GithubReadme\node_modules\.package-lock.json" />
+    <Content Include="GithubReadme\node_modules\argparse\argparse.js" />
+    <Content Include="GithubReadme\node_modules\argparse\CHANGELOG.md" />
+    <Content Include="GithubReadme\node_modules\argparse\lib\sub.js" />
+    <Content Include="GithubReadme\node_modules\argparse\lib\textwrap.js" />
+    <Content Include="GithubReadme\node_modules\argparse\LICENSE" />
+    <Content Include="GithubReadme\node_modules\argparse\package.json" />
+    <Content Include="GithubReadme\node_modules\argparse\README.md" />
+    <Content Include="GithubReadme\node_modules\entities\lib\decode.d.ts.map" />
+    <Content Include="GithubReadme\node_modules\entities\lib\decode.js" />
+    <Content Include="GithubReadme\node_modules\entities\lib\decode_codepoint.d.ts.map" />
+    <Content Include="GithubReadme\node_modules\entities\lib\decode_codepoint.js" />
+    <Content Include="GithubReadme\node_modules\entities\lib\encode-trie.d.ts.map" />
+    <Content Include="GithubReadme\node_modules\entities\lib\encode-trie.js" />
+    <Content Include="GithubReadme\node_modules\entities\lib\encode.d.ts.map" />
+    <Content Include="GithubReadme\node_modules\entities\lib\encode.js" />
+    <Content Include="GithubReadme\node_modules\entities\lib\generated\decode-data-html.d.ts.map" />
+    <Content Include="GithubReadme\node_modules\entities\lib\generated\decode-data-html.js" />
+    <Content Include="GithubReadme\node_modules\entities\lib\generated\decode-data-xml.d.ts.map" />
+    <Content Include="GithubReadme\node_modules\entities\lib\generated\decode-data-xml.js" />
+    <Content Include="GithubReadme\node_modules\entities\lib\index.d.ts.map" />
+    <Content Include="GithubReadme\node_modules\entities\lib\index.js" />
+    <Content Include="GithubReadme\node_modules\entities\lib\maps\entities.json" />
+    <Content Include="GithubReadme\node_modules\entities\lib\maps\legacy.json" />
+    <Content Include="GithubReadme\node_modules\entities\lib\maps\xml.json" />
+    <Content Include="GithubReadme\node_modules\entities\LICENSE" />
+    <Content Include="GithubReadme\node_modules\entities\package.json" />
+    <Content Include="GithubReadme\node_modules\entities\readme.md" />
+    <Content Include="GithubReadme\node_modules\linkify-it\index.js" />
+    <Content Include="GithubReadme\node_modules\linkify-it\lib\re.js" />
+    <Content Include="GithubReadme\node_modules\linkify-it\LICENSE" />
+    <Content Include="GithubReadme\node_modules\linkify-it\package.json" />
+    <Content Include="GithubReadme\node_modules\linkify-it\README.md" />
+    <Content Include="GithubReadme\node_modules\markdown-it\bin\markdown-it.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\dist\markdown-it.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\dist\markdown-it.min.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\index.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\common\entities.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\common\html_blocks.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\common\html_re.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\common\utils.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\helpers\index.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\helpers\parse_link_destination.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\helpers\parse_link_label.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\helpers\parse_link_title.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\index.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\parser_block.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\parser_core.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\parser_inline.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\presets\commonmark.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\presets\default.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\presets\zero.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\renderer.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\ruler.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\blockquote.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\code.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\fence.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\heading.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\hr.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\html_block.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\lheading.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\list.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\paragraph.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\reference.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\state_block.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\table.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\block.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\inline.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\linkify.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\normalize.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\replacements.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\smartquotes.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\state_core.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\text_join.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\autolink.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\backticks.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\balance_pairs.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\emphasis.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\entity.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\escape.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\fragments_join.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\html_inline.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\image.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\link.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\linkify.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\newline.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\state_inline.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\strikethrough.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\text.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\lib\token.js" />
+    <Content Include="GithubReadme\node_modules\markdown-it\LICENSE" />
+    <Content Include="GithubReadme\node_modules\markdown-it\package.json" />
+    <Content Include="GithubReadme\node_modules\markdown-it\README.md" />
+    <Content Include="GithubReadme\node_modules\mdurl\CHANGELOG.md" />
+    <Content Include="GithubReadme\node_modules\mdurl\decode.js" />
+    <Content Include="GithubReadme\node_modules\mdurl\encode.js" />
+    <Content Include="GithubReadme\node_modules\mdurl\format.js" />
+    <Content Include="GithubReadme\node_modules\mdurl\index.js" />
+    <Content Include="GithubReadme\node_modules\mdurl\LICENSE" />
+    <Content Include="GithubReadme\node_modules\mdurl\package.json" />
+    <Content Include="GithubReadme\node_modules\mdurl\parse.js" />
+    <Content Include="GithubReadme\node_modules\mdurl\README.md" />
+    <Content Include="GithubReadme\node_modules\uc.micro\categories\Cc\regex.js" />
+    <Content Include="GithubReadme\node_modules\uc.micro\categories\Cf\regex.js" />
+    <Content Include="GithubReadme\node_modules\uc.micro\categories\P\regex.js" />
+    <Content Include="GithubReadme\node_modules\uc.micro\categories\Z\regex.js" />
+    <Content Include="GithubReadme\node_modules\uc.micro\CHANGELOG.md" />
+    <Content Include="GithubReadme\node_modules\uc.micro\index.js" />
+    <Content Include="GithubReadme\node_modules\uc.micro\LICENSE.txt" />
+    <Content Include="GithubReadme\node_modules\uc.micro\package.json" />
+    <Content Include="GithubReadme\node_modules\uc.micro\properties\Any\regex.js" />
+    <Content Include="GithubReadme\node_modules\uc.micro\README.md" />
+    <Content Include="GithubReadme\parsed\Banker.md" />
+    <Content Include="GithubReadme\parsed\Buffer.md" />
+    <Content Include="GithubReadme\parsed\Dialogues.md" />
+    <Content Include="GithubReadme\parsed\Gambler.md" />
+    <Content Include="GithubReadme\parsed\InstallationAndConfigs.md" />
+    <Content Include="GithubReadme\parsed\Leaderboard.md" />
+    <Content Include="GithubReadme\parsed\Localization.md" />
+    <Content Include="GithubReadme\parsed\Lootboxes.md" />
+    <Content Include="GithubReadme\parsed\MainInfo.md" />
+    <Content Include="GithubReadme\parsed\Marketplace.md" />
+    <Content Include="GithubReadme\parsed\NPC.md" />
+    <Content Include="GithubReadme\parsed\Patchnotes.md" />
+    <Content Include="GithubReadme\parsed\Quests.md" />
+    <Content Include="GithubReadme\parsed\QuestsEvents.md" />
+    <Content Include="GithubReadme\parsed\ServerInfo.md" />
+    <Content Include="GithubReadme\parsed\Teleporter.md" />
+    <Content Include="GithubReadme\parsed\TerritorySystem.md" />
+    <Content Include="GithubReadme\parsed\Trader.md" />
+    <Content Include="GithubReadme\parsed\Transmog.md" />
+    <Content Include="GithubReadme\Patchnotes.md" />
+    <EmbeddedResource Include="icons\enchantment.png" />
+    <Content Include="ILRepack.targets" />
+    <EmbeddedResource Include="Resources\VES_Scripts.dll" />
+    <Content Include="ThunderstorePackage\icon.png" />
+    <Content Include="ThunderstorePackage\manifest.json" />
+    <Content Include="ThunderstorePackage\README.md" />
+    <EmbeddedResource Include="translations\English.yml" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\decode.d.ts" />
+    <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\decode_codepoint.d.ts" />
+    <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\encode-trie.d.ts" />
+    <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\encode.d.ts" />
+    <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\generated\decode-data-html.d.ts" />
+    <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\generated\decode-data-xml.d.ts" />
+    <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\index.d.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="0Harmony">
+      <HintPath>Libs\0Harmony.dll</HintPath>
+    </Reference>
+    <Reference Include="assembly_guiutils">
+      <HintPath>Libs\assembly_guiutils.dll</HintPath>
+    </Reference>
+    <Reference Include="assembly_utils">
+      <HintPath>Libs\assembly_utils.dll</HintPath>
+    </Reference>
+    <Reference Include="assembly_valheim">
+      <HintPath>Libs\assembly_valheim.dll</HintPath>
+    </Reference>
+    <Reference Include="BepInEx">
+      <HintPath>Libs\BepInEx.dll</HintPath>
+    </Reference>
+    <Reference Include="fastJSON">
+      <HintPath>Libs\fastJSON.dll</HintPath>
+    </Reference>
+    <Reference Include="ItemDataManager">
+      <HintPath>Libs\ItemDataManager.dll</HintPath>
+    </Reference>
+    <Reference Include="Jewelcrafting">
+      <HintPath>Libs\JewelcraftingAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="netstandard" />
+    <Reference Include="System" />
+    <Reference Include="Unity.TextMeshPro">
+      <HintPath>Libs\Unity.TextMeshPro.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine">
+      <HintPath>Libs\UnityEngine.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AnimationModule">
+      <HintPath>Libs\UnityEngine.AnimationModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AssetBundleModule">
+      <HintPath>Libs\UnityEngine.AssetBundleModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.AudioModule">
+      <HintPath>Libs\UnityEngine.AudioModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.CoreModule">
+      <HintPath>Libs\UnityEngine.CoreModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ImageConversionModule">
+      <HintPath>Libs\UnityEngine.ImageConversionModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.IMGUIModule">
+      <HintPath>Libs\UnityEngine.IMGUIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.InputLegacyModule">
+      <HintPath>Libs\UnityEngine.InputLegacyModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.ParticleSystemModule">
+      <HintPath>Libs\UnityEngine.ParticleSystemModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>Libs\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UI">
+      <HintPath>Libs\UnityEngine.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsModule">
+      <HintPath>Libs\UnityEngine.UIElementsModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIElementsNativeModule">
+      <HintPath>Libs\UnityEngine.UIElementsNativeModule.dll</HintPath>
+    </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>Libs\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
+    <Reference Include="YamlDotNet, Version=15.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>packages\YamlDotNet.15.1.2\lib\net47\YamlDotNet.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <Target Name="Copy" AfterTargets="ILRepack">
+    <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll&quot;" />
+    <Exec Command="pdb2mdb.exe &quot;$(TargetDir)$(AssemblyName).dll&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;$(ProjectDir)ThunderstorePackage\$(AssemblyName).dll&quot;" />
+  </Target>
+  <Import Project="packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-        <ProjectGuid>{02E7D016-77BE-40E0-9D13-8656CD0A4FD3}</ProjectGuid>
-        <OutputType>Library</OutputType>
-        <AppDesignerFolder>Properties</AppDesignerFolder>
-        <RootNamespace>kg.ValheimEnchantmentSystem</RootNamespace>
-        <AssemblyName>kg.ValheimEnchantmentSystem</AssemblyName>
-        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
-        <FileAlignment>512</FileAlignment>
-        <LangVersion>preview</LangVersion>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugSymbols>true</DebugSymbols>
-        <DebugType>full</DebugType>
-        <Optimize>true</Optimize>
-        <OutputPath>bin\Debug\</OutputPath>
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    </PropertyGroup>
-    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-        <PlatformTarget>AnyCPU</PlatformTarget>
-        <DebugType>full</DebugType>
-        <Optimize>true</Optimize>
-        <OutputPath>bin\Release\</OutputPath>
-        <DefineConstants>TRACE</DefineConstants>
-        <ErrorReport>prompt</ErrorReport>
-        <WarningLevel>4</WarningLevel>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-        <DebugSymbols>true</DebugSymbols>
-    </PropertyGroup>
-    <ItemGroup>
-        <Compile Include="Configs\AutoISP.cs" />
-        <Compile Include="Configs\BepInEx_ConfigurationManager.cs" />
-        <Compile Include="Configs\Defaults.cs" />
-        <Compile Include="Configs\SyncedData.cs" />
-        <Compile Include="Enchantment_Core.cs" />
-        <Compile Include="Enchantment_Skill.cs" />
-        <Compile Include="Enchantment_VFX.cs" />
-        <Compile Include="GlobalUsings.cs" />
-        <Compile Include="Items_Structures\ScrollItems.cs" />
-        <Compile Include="Items_Structures\BuildPieces.cs" />
-        <Compile Include="Managers\AnimationSpeedManager.cs" />
-        <Compile Include="Managers\LocalizationManager.cs" />
-        <Compile Include="Misc\Attributes.cs" />
-        <Compile Include="Misc\Convertions.cs" />
-        <Compile Include="Misc\DiscordWebhook.cs" />
-        <Compile Include="Misc\External_AsmLoad.cs" />
-        <Compile Include="Other_Mods_APIs.cs" />
-        <Compile Include="StatsPanel.cs" />
-        <Compile Include="UI\InfoUI.cs" />
-        <Compile Include="UI\MainUI.cs" />
-        <Compile Include="UI\NotificationsUI.cs" />
-        <Compile Include="UI\SettingsUI.cs" />
-        <Compile Include="Utils\TerminalCommands.cs" />
-        <Compile Include="Utils\Utils.cs" />
-        <Compile Include="ValheimEnchantmentSystem.cs" />
-        <Compile Include="Properties\AssemblyInfo.cs"/>
-        <Compile Include="Managers\ServerSync.cs" />
-        <Compile Include="Managers\ItemManager.cs" />
-        <Compile Include="Managers\SkillManager.cs" />
-    </ItemGroup>
-    <ItemGroup>
-      <None Include="App.config" />
-      <None Include="packages.config" />
-    </ItemGroup>
-    <ItemGroup>
-      <EmbeddedResource Include="Resources\kg_enchantment" />
-    </ItemGroup>
-    <ItemGroup>
-      <Content Include="GithubReadme\app.js" />
-      <Content Include="GithubReadme\EnchantmentScrolls.md" />
-      <Content Include="GithubReadme\InstallationAndConfigs.md" />
-      <Content Include="GithubReadme\ItemEnchantment.md" />
-      <Content Include="GithubReadme\Localization.md" />
-      <Content Include="GithubReadme\MainInfo.md" />
-      <Content Include="GithubReadme\node use.bat" />
-      <Content Include="GithubReadme\node_modules\.bin\markdown-it" />
-      <Content Include="GithubReadme\node_modules\.bin\markdown-it.cmd" />
-      <Content Include="GithubReadme\node_modules\.bin\markdown-it.ps1" />
-      <Content Include="GithubReadme\node_modules\.package-lock.json" />
-      <Content Include="GithubReadme\node_modules\argparse\argparse.js" />
-      <Content Include="GithubReadme\node_modules\argparse\CHANGELOG.md" />
-      <Content Include="GithubReadme\node_modules\argparse\lib\sub.js" />
-      <Content Include="GithubReadme\node_modules\argparse\lib\textwrap.js" />
-      <Content Include="GithubReadme\node_modules\argparse\LICENSE" />
-      <Content Include="GithubReadme\node_modules\argparse\package.json" />
-      <Content Include="GithubReadme\node_modules\argparse\README.md" />
-      <Content Include="GithubReadme\node_modules\entities\lib\decode.d.ts.map" />
-      <Content Include="GithubReadme\node_modules\entities\lib\decode.js" />
-      <Content Include="GithubReadme\node_modules\entities\lib\decode_codepoint.d.ts.map" />
-      <Content Include="GithubReadme\node_modules\entities\lib\decode_codepoint.js" />
-      <Content Include="GithubReadme\node_modules\entities\lib\encode-trie.d.ts.map" />
-      <Content Include="GithubReadme\node_modules\entities\lib\encode-trie.js" />
-      <Content Include="GithubReadme\node_modules\entities\lib\encode.d.ts.map" />
-      <Content Include="GithubReadme\node_modules\entities\lib\encode.js" />
-      <Content Include="GithubReadme\node_modules\entities\lib\generated\decode-data-html.d.ts.map" />
-      <Content Include="GithubReadme\node_modules\entities\lib\generated\decode-data-html.js" />
-      <Content Include="GithubReadme\node_modules\entities\lib\generated\decode-data-xml.d.ts.map" />
-      <Content Include="GithubReadme\node_modules\entities\lib\generated\decode-data-xml.js" />
-      <Content Include="GithubReadme\node_modules\entities\lib\index.d.ts.map" />
-      <Content Include="GithubReadme\node_modules\entities\lib\index.js" />
-      <Content Include="GithubReadme\node_modules\entities\lib\maps\entities.json" />
-      <Content Include="GithubReadme\node_modules\entities\lib\maps\legacy.json" />
-      <Content Include="GithubReadme\node_modules\entities\lib\maps\xml.json" />
-      <Content Include="GithubReadme\node_modules\entities\LICENSE" />
-      <Content Include="GithubReadme\node_modules\entities\package.json" />
-      <Content Include="GithubReadme\node_modules\entities\readme.md" />
-      <Content Include="GithubReadme\node_modules\linkify-it\index.js" />
-      <Content Include="GithubReadme\node_modules\linkify-it\lib\re.js" />
-      <Content Include="GithubReadme\node_modules\linkify-it\LICENSE" />
-      <Content Include="GithubReadme\node_modules\linkify-it\package.json" />
-      <Content Include="GithubReadme\node_modules\linkify-it\README.md" />
-      <Content Include="GithubReadme\node_modules\markdown-it\bin\markdown-it.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\dist\markdown-it.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\dist\markdown-it.min.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\index.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\common\entities.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\common\html_blocks.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\common\html_re.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\common\utils.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\helpers\index.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\helpers\parse_link_destination.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\helpers\parse_link_label.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\helpers\parse_link_title.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\index.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\parser_block.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\parser_core.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\parser_inline.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\presets\commonmark.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\presets\default.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\presets\zero.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\renderer.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\ruler.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\blockquote.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\code.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\fence.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\heading.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\hr.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\html_block.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\lheading.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\list.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\paragraph.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\reference.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\state_block.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_block\table.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\block.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\inline.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\linkify.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\normalize.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\replacements.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\smartquotes.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\state_core.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_core\text_join.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\autolink.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\backticks.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\balance_pairs.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\emphasis.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\entity.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\escape.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\fragments_join.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\html_inline.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\image.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\link.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\linkify.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\newline.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\state_inline.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\strikethrough.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\rules_inline\text.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\lib\token.js" />
-      <Content Include="GithubReadme\node_modules\markdown-it\LICENSE" />
-      <Content Include="GithubReadme\node_modules\markdown-it\package.json" />
-      <Content Include="GithubReadme\node_modules\markdown-it\README.md" />
-      <Content Include="GithubReadme\node_modules\mdurl\CHANGELOG.md" />
-      <Content Include="GithubReadme\node_modules\mdurl\decode.js" />
-      <Content Include="GithubReadme\node_modules\mdurl\encode.js" />
-      <Content Include="GithubReadme\node_modules\mdurl\format.js" />
-      <Content Include="GithubReadme\node_modules\mdurl\index.js" />
-      <Content Include="GithubReadme\node_modules\mdurl\LICENSE" />
-      <Content Include="GithubReadme\node_modules\mdurl\package.json" />
-      <Content Include="GithubReadme\node_modules\mdurl\parse.js" />
-      <Content Include="GithubReadme\node_modules\mdurl\README.md" />
-      <Content Include="GithubReadme\node_modules\uc.micro\categories\Cc\regex.js" />
-      <Content Include="GithubReadme\node_modules\uc.micro\categories\Cf\regex.js" />
-      <Content Include="GithubReadme\node_modules\uc.micro\categories\P\regex.js" />
-      <Content Include="GithubReadme\node_modules\uc.micro\categories\Z\regex.js" />
-      <Content Include="GithubReadme\node_modules\uc.micro\CHANGELOG.md" />
-      <Content Include="GithubReadme\node_modules\uc.micro\index.js" />
-      <Content Include="GithubReadme\node_modules\uc.micro\LICENSE.txt" />
-      <Content Include="GithubReadme\node_modules\uc.micro\package.json" />
-      <Content Include="GithubReadme\node_modules\uc.micro\properties\Any\regex.js" />
-      <Content Include="GithubReadme\node_modules\uc.micro\README.md" />
-      <Content Include="GithubReadme\parsed\Banker.md" />
-      <Content Include="GithubReadme\parsed\Buffer.md" />
-      <Content Include="GithubReadme\parsed\Dialogues.md" />
-      <Content Include="GithubReadme\parsed\Gambler.md" />
-      <Content Include="GithubReadme\parsed\InstallationAndConfigs.md" />
-      <Content Include="GithubReadme\parsed\Leaderboard.md" />
-      <Content Include="GithubReadme\parsed\Localization.md" />
-      <Content Include="GithubReadme\parsed\Lootboxes.md" />
-      <Content Include="GithubReadme\parsed\MainInfo.md" />
-      <Content Include="GithubReadme\parsed\Marketplace.md" />
-      <Content Include="GithubReadme\parsed\NPC.md" />
-      <Content Include="GithubReadme\parsed\Patchnotes.md" />
-      <Content Include="GithubReadme\parsed\Quests.md" />
-      <Content Include="GithubReadme\parsed\QuestsEvents.md" /> 
-      <Content Include="GithubReadme\parsed\ServerInfo.md" />
-      <Content Include="GithubReadme\parsed\Teleporter.md" />
-      <Content Include="GithubReadme\parsed\TerritorySystem.md" />
-      <Content Include="GithubReadme\parsed\Trader.md" />
-      <Content Include="GithubReadme\parsed\Transmog.md" />
-      <Content Include="GithubReadme\Patchnotes.md" />
-      <EmbeddedResource Include="icons\enchantment.png" />
-      <Content Include="ILRepack.targets" />
-      <EmbeddedResource Include="Resources\VES_Scripts.dll" />
-      <Content Include="ThunderstorePackage\icon.png" />
-      <Content Include="ThunderstorePackage\manifest.json" />
-      <Content Include="ThunderstorePackage\README.md" />
-      <EmbeddedResource Include="translations\English.yml" />
-    </ItemGroup>
-    <ItemGroup>
-      <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\decode.d.ts" />
-      <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\decode_codepoint.d.ts" />
-      <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\encode-trie.d.ts" />
-      <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\encode.d.ts" />
-      <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\generated\decode-data-html.d.ts" />
-      <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\generated\decode-data-xml.d.ts" />
-      <TypeScriptCompile Include="GithubReadme\node_modules\entities\lib\index.d.ts" />
-    </ItemGroup>
-    <ItemGroup>
-      <Reference Include="0Harmony">
-        <HintPath>Libs\0Harmony.dll</HintPath>
-      </Reference>
-      <Reference Include="assembly_guiutils">
-        <HintPath>Libs\assembly_guiutils.dll</HintPath>
-      </Reference>
-      <Reference Include="assembly_utils">
-        <HintPath>Libs\assembly_utils.dll</HintPath>
-      </Reference>
-      <Reference Include="assembly_valheim">
-        <HintPath>Libs\assembly_valheim.dll</HintPath>
-      </Reference>
-      <Reference Include="BepInEx">
-        <HintPath>Libs\BepInEx.dll</HintPath>
-      </Reference>
-      <Reference Include="fastJSON">
-        <HintPath>Libs\fastJSON.dll</HintPath>
-      </Reference>
-      <Reference Include="ItemDataManager">
-        <HintPath>Libs\ItemDataManager.dll</HintPath>
-      </Reference>
-      <Reference Include="Jewelcrafting">
-        <HintPath>Libs\JewelcraftingAPI.dll</HintPath>
-      </Reference>
-      <Reference Include="System" />
-      <Reference Include="Unity.TextMeshPro">
-        <HintPath>Libs\Unity.TextMeshPro.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine">
-        <HintPath>Libs\UnityEngine.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.AnimationModule">
-        <HintPath>Libs\UnityEngine.AnimationModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.AssetBundleModule">
-        <HintPath>Libs\UnityEngine.AssetBundleModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.AudioModule">
-        <HintPath>Libs\UnityEngine.AudioModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.CoreModule">
-        <HintPath>Libs\UnityEngine.CoreModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ImageConversionModule">
-        <HintPath>Libs\UnityEngine.ImageConversionModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.IMGUIModule">
-        <HintPath>Libs\UnityEngine.IMGUIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.InputLegacyModule">
-        <HintPath>Libs\UnityEngine.InputLegacyModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.ParticleSystemModule">
-        <HintPath>Libs\UnityEngine.ParticleSystemModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.PhysicsModule">
-        <HintPath>Libs\UnityEngine.PhysicsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UI">
-        <HintPath>Libs\UnityEngine.UI.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UIElementsModule">
-        <HintPath>Libs\UnityEngine.UIElementsModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UIElementsNativeModule">
-        <HintPath>Libs\UnityEngine.UIElementsNativeModule.dll</HintPath>
-      </Reference>
-      <Reference Include="UnityEngine.UIModule">
-        <HintPath>Libs\UnityEngine.UIModule.dll</HintPath>
-      </Reference>
-      <Reference Include="YamlDotNet, Version=15.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
-        <HintPath>packages\YamlDotNet.15.1.2\lib\net47\YamlDotNet.dll</HintPath>
-      </Reference>
-    </ItemGroup>
-    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"/>
-
-    <Target Name="Copy" AfterTargets="ILRepack">
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll&quot;" />
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll&quot;" />
-        <Exec Command="pdb2mdb.exe &quot;$(TargetDir)$(AssemblyName).dll&quot;" />
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />
-
-        <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;$(ProjectDir)ThunderstorePackage\$(AssemblyName).dll&quot;" />
-    </Target>
-
-    <Import Project="packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />
-
-    <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-      <PropertyGroup>
-        <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-      </PropertyGroup>
-      <Error Condition="!Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets'))" />
-    </Target>
-    
-    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+    <Error Condition="!Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
     <Target Name="BeforeBuild">
     </Target>
     <Target Name="AfterBuild">
     </Target>
     -->
-
 </Project>
