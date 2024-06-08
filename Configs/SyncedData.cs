@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Misc;
 using ServerSync;
 using AutoISP;
+using static PrivilegeManager;
 
 namespace kg.ValheimEnchantmentSystem.Configs;
 
@@ -30,7 +31,7 @@ public static class SyncedData
         SafetyLevel = ValheimEnchantmentSystem.config("Enchantment", "SafetyLevel", 3,
             "The level until which enchantments won't destroy the item. Set to 0 to disable.");
         DropEnchantmentOnUpgrade = ValheimEnchantmentSystem.config("Enchantment", "DropEnchantmentOnUpgrade", false, "Drop enchantment on item upgrade.");
-        ItemFailureType = ValheimEnchantmentSystem.config("Enchantment", "ItemFailureType", ItemDesctructionTypeEnum.LevelDecrease, "LevelDecrease will remove one level on fail, Destroy will destroy item on fail, Combined will use yaml destroy chance and success chance.");
+        ItemFailureType = ValheimEnchantmentSystem.config("Enchantment", "ItemFailureType", ItemDesctructionTypeEnum.LevelDecrease, "LevelDecrease will remove one level on fail, Destroy will destroy item on fail, Combined will use yaml destroy chance and success chance, CombinedEasy will keep or decrease level and never destroy");
         AllowJewelcraftingMirrorCopyEnchant = ValheimEnchantmentSystem.config("Enchantment", "AllowJewelcraftingMirrorCopyEnchant", false, "Allow jewelcrafting to copy enchantment from one item to another using mirror.");
         AdditionalEnchantmentChancePerLevel = ValheimEnchantmentSystem.config("Enchantment", "AdditionalEnchantmentChancePerLevel", 0.06f, "Additional enchantment chance per level of Enchantment skill.");
         AllowVFXArmor = ValheimEnchantmentSystem.config("Enchantment", "AllowVFXArmor", false, "Allow VFX on armor.");
@@ -291,7 +292,7 @@ public static class SyncedData
         return enchantmentLevel * AdditionalEnchantmentChancePerLevel.Value;
     }
 
-    public enum ItemDesctructionTypeEnum{ LevelDecrease, Destroy, Combined }
+    public enum ItemDesctructionTypeEnum{ LevelDecrease, Destroy, Combined, CombinedEasy }
     
     public static ConfigEntry<int> SafetyLevel;
     public static ConfigEntry<bool> DropEnchantmentOnUpgrade;
@@ -373,21 +374,25 @@ public static class SyncedData
                 return cached_tooltip;
             }
             StringBuilder builder = new StringBuilder();
-            if (attack_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_attackspeed: <color=#DF745D>{attack_speed}%</color>");
-            if (movement_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_movementspeed: <color=#DF745D>{movement_speed}%</color>");
-            if (damage_true > 0) builder.Append($"\n<color={color}>•</color> $enchantment_truedamage: {damage_true}");
-            if (damage_fire > 0) builder.Append($"\n<color={color}>•</color> $inventory_fire: <color=#FFA500>{damage_fire}</color>");
-            if (damage_blunt > 0) builder.Append($"\n<color={color}>•</color> $inventory_blunt: <color=#FFFF00>{damage_blunt}</color>");
-            if (damage_slash > 0) builder.Append($"\n<color={color}>•</color> $inventory_slash: <color=#7F00FF>{damage_slash}</color>");
-            if (damage_pierce > 0) builder.Append($"\n<color={color}>•</color> $inventory_pierce: <color=#D499B9>{damage_pierce}</color>");
-            if (damage_chop > 0) builder.Append($"\n<color={color}>•</color> $enchantment_chopdamage: <color=#FFAF00>{damage_chop}</color>");
-            if (damage_pickaxe > 0) builder.Append($"\n<color={color}>•</color> $enchantment_pickaxedamage: <color=#FF00FF>{damage_pickaxe}</color>");
-            if (damage_frost > 0) builder.Append($"\n<color={color}>•</color> $inventory_frost: <color=#00FFFF>{damage_frost}</color>");
-            if (damage_lightning > 0) builder.Append($"\n<color={color}>•</color> $inventory_lightning: <color=#0000FF>{damage_lightning}</color>");
-            if (damage_poison > 0) builder.Append($"\n<color={color}>•</color> $inventory_poison: <color=#00FF00>{damage_poison}</color>");
-            if (damage_spirit > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>{damage_spirit}</color>");
-            if (armor > 0) builder.Append($"\n<color={color}>•</color> $item_armor: <color=#808080>{armor}</color>");
-            if (durability > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>{durability}</color>");
+            if (attack_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_attackspeed: <color=#DF745D>+{attack_speed}%</color>");
+            if (movement_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_movementspeed: <color=#DF745D>+{movement_speed}%</color>");
+            if (damage_true > 0) builder.Append($"\n<color={color}>•</color> $enchantment_truedamage: +{damage_true}");
+            if (damage_fire > 0) builder.Append($"\n<color={color}>•</color> $inventory_fire: <color=#FFA500>+{damage_fire}</color>");
+            if (damage_blunt > 0) builder.Append($"\n<color={color}>•</color> $inventory_blunt: <color=#FFFF00>+{damage_blunt}</color>");
+            if (damage_slash > 0) builder.Append($"\n<color={color}>•</color> $inventory_slash: <color=#7F00FF>+{damage_slash}</color>");
+            if (damage_pierce > 0) builder.Append($"\n<color={color}>•</color> $inventory_pierce: <color=#D499B9>+{damage_pierce}</color>");
+            if (damage_chop > 0) builder.Append($"\n<color={color}>•</color> $enchantment_chopdamage: <color=#FFAF00>+{damage_chop}</color>");
+            if (damage_pickaxe > 0) builder.Append($"\n<color={color}>•</color> $enchantment_pickaxedamage: <color=#FF00FF>+{damage_pickaxe}</color>");
+            if (damage_frost > 0) builder.Append($"\n<color={color}>•</color> $inventory_frost: <color=#00FFFF>+{damage_frost}</color>");
+            if (damage_lightning > 0) builder.Append($"\n<color={color}>•</color> $inventory_lightning: <color=#0000FF>+{damage_lightning}</color>");
+            if (damage_poison > 0) builder.Append($"\n<color={color}>•</color> $inventory_poison: <color=#00FF00>+{damage_poison}</color>");
+            if (damage_spirit > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>+{damage_spirit}</color>");
+            // if (armor > 0) builder.Append($"\n<color={color}>•</color> $item_armor: <color=#808080>+{armor}</color>");
+            // if (durability > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability}</color>");
+            if (max_hp > 0) builder.Append($"\n<color={color}>•</color> $se_health: <color=#DD3333>+{max_hp}</color>");
+            if (hp_regen > 0) builder.Append($"\n<color={color}>•</color> $se_healthregen: <color=#DD3333>+{hp_regen}/10s</color>");
+            if (max_stamina > 0) builder.Append($"\n<color={color}>•</color> $se_stamina: <color=#EEEE11>+{max_stamina}</color>");
+            if (stamina_regen > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#EEEE11>+{stamina_regen}/s</color>");
             if (API_backpacks_additionalrow_x > 0) builder.Append($"\n<color={color}>•</color> $enchantment_backpacks_additionalrow_x: <color=#7393B3>{API_backpacks_additionalrow_x}</color>");
             if (API_backpacks_additionalrow_y > 0) builder.Append($"\n<color={color}>•</color> $enchantment_backpacks_additionalrow_x: <color=#7393B3>{API_backpacks_additionalrow_y}</color>");
             
@@ -403,11 +408,11 @@ public static class SyncedData
             string result = "";
             if (damage_percentage > 0)
             {
-                result += $"\n• $enchantment_bonusespercentdamage (<color=#AF009F>+{damage_percentage}%</color>)";
+                result += $"\n• $enchantment_bonusespercentdamage: <color=#AF009F>+{damage_percentage}%</color>";
             }
             if (armor_percentage > 0)
             {
-                result += $"\n• $enchantment_bonusespercentarmor (<color=#009FAF>+{armor_percentage}%</color>)";
+                result += $"\n• $enchantment_bonusespercentarmor: <color=#009FAF>+{armor_percentage}%</color>";
             }
             result += BuildAdditionalStats("#FFFFFF");
             return result;
@@ -445,6 +450,10 @@ public static class SyncedData
         [SerializeField] public HitData.DamageModifier resistance_spirit;
         [SerializeField] public int attack_speed;
         [SerializeField] public int movement_speed;
+        [SerializeField] public int max_hp;
+        [SerializeField] public int max_stamina;
+        [SerializeField] public float hp_regen;
+        [SerializeField] public float stamina_regen;
         //api stats
         [SerializeField] public int API_backpacks_additionalrow_x;
         [SerializeField] public int API_backpacks_additionalrow_y;

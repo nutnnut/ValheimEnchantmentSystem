@@ -1,6 +1,7 @@
 ﻿using System.Reflection.Emit;
 using System.Text.RegularExpressions;
 using ItemDataManager;
+using ItemManager;
 using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Configs;
 using kg.ValheimEnchantmentSystem.Misc;
@@ -180,6 +181,22 @@ public static class Enchantment_Core
                             msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
                         }
                         break;
+                    case SyncedData.ItemDesctructionTypeEnum.CombinedEasy:
+                        notification = destroy ? Notifications_UI.NotificationItemResult.LevelDecrease : Notifications_UI.NotificationItemResult.LevelDecrease;
+                        if (destroy)
+                        {
+                            level = Mathf.Max(0, level - 1);
+                            Save();
+                            Other_Mods_APIs.ApplyAPIs(this);
+                            ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
+                            msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
+                        }
+                        else
+                        {
+                            msg = "$enchantment_fail_nochange".Localize(Item.m_shared.m_name.Localize(), level.ToString());
+                            Save();
+                        }
+                        break;
                 }
                 
                 if (SyncedData.EnchantmentEnableNotifications.Value && SyncedData.EnchantmentNotificationMinLevel.Value <= level)
@@ -258,9 +275,11 @@ public static class Enchantment_Core
                 if (stats)
                 {
                     int damagePercent = stats.damage_percentage;
-                    if (stats.durability_percentage > 0 || stats.durability > 0)
-                        __result = new Regex("(\\$item_durability.*)").Replace(__result, $"$1 (<color={color}>$enchantment_increasedwithenchantment</color>)");
-                    
+                    if (stats.durability > 0)
+                        __result = new Regex("(\\$item_durability.*)").Replace(__result, $"$1 (<color={color}>+{stats.durability}</color>)");
+                    if (stats.durability_percentage > 0)
+                        __result = new Regex("(\\$item_durability.*)").Replace(__result, $"$1 (<color={color}>+{stats.durability_percentage}%</color>)");
+
                     __result += "\n";
                     
                     if (damagePercent > 0)
@@ -290,14 +309,20 @@ public static class Enchantment_Core
                     int armorPercent = stats.armor_percentage;
                     if (armorPercent > 0)
                     {
-                        __result = new Regex("(\\$item_blockarmor.*)").Replace(__result, $"$1 (<color={color}>+{(item.GetBaseBlockPower(qualityLevel) * armorPercent / 100f).RoundOne()}</color>)");
-                        __result = new Regex("(\\$item_armor.*)").Replace(__result, $"$1 (<color={color}>+{(item.GetArmor(qualityLevel, item.m_worldLevel) * armorPercent / 100f).RoundOne()}</color>)");
+                        __result = new Regex("(\\$item_blockarmor.*)").Replace(__result, $"$1 (<color={color}>+{(item.GetBaseBlockPower(qualityLevel) * armorPercent / 100f).RoundOne()}({armorPercent}%)</color>)");
+                        __result = new Regex("(\\$item_armor.*)").Replace(__result, $"$1 (<color={color}>+{(item.GetArmor(qualityLevel, item.m_worldLevel) * armorPercent / 100f).RoundOne()}({armorPercent}%)</color>)");
                         __result += $"\n<color={color}>•</color> $enchantment_bonusespercentarmor (<color={color}>+{armorPercent}%</color>)";
+                    }
+                    int armor = stats.armor;
+                    if (armor > 0)
+                    {
+                        __result = new Regex("(\\$item_blockarmor.*)").Replace(__result, $"$1 (<color={color}>+{stats.armor}</color>)");
+                        __result = new Regex("(\\$item_armor.*)").Replace(__result, $"$1 (<color={color}>+{stats.armor}</color>)");
                     }
 
                     __result += stats.BuildAdditionalStats(color);
                 }
-                
+
                 int chance = en.GetEnchantmentChance();
                 if (chance > 0)
                 {
@@ -314,7 +339,7 @@ public static class Enchantment_Core
                     __result += $"\n<color={color}>•</color> $enchantment_maxedout".Localize();
                 }
             }
-            
+
 
             if (blockShowEnchant) return;
             string dropName = item.m_dropPrefab
@@ -343,10 +368,10 @@ public static class Enchantment_Core
                 {
                     canBe += "\n<color=yellow>• $enchantment_requiresskilllevel</color>".Localize(reqs.required_skill.ToString());
                 }
-                
+
                 __result += canBe;
             }
-           
+
         }
     }
 
@@ -470,7 +495,44 @@ public static class Enchantment_Core
             }
         }
     }
-    
+
+    [HarmonyPatch(typeof(Character), nameof(Character.SetMaxHealth))]
+    [ClientOnlyPatch]
+    private static class Character_SetMaxHealth_Patch
+    {
+        [UsedImplicitly]
+        private static void Prefix(Character __instance, ref float health)
+        {
+            if (__instance is Player player)
+            {
+                foreach (var en in player.EquippedEnchantments())
+                {
+                    if (en.Stats is { } stats)
+                    {
+                        health += stats.max_hp;
+                    }
+                }
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Player), nameof(Player.SetMaxStamina))]
+    [ClientOnlyPatch]
+    private static class Player_SetMaxStamina_Patch
+    {
+        [UsedImplicitly]
+        private static void Prefix(Player __instance, ref float stamina)
+        {
+            foreach (var en in __instance.EquippedEnchantments())
+            {
+                if (en.Stats is { } stats)
+                {
+                    stamina += stats.max_stamina;
+                }
+            }
+        }
+    }
+
     [HarmonyPatch(typeof(Player),nameof(Player.GetEquipmentMovementModifier))]
     [ClientOnlyPatch] 
     private static class Player_UpdateMovementModifier_Patch
@@ -511,5 +573,96 @@ public static class Enchantment_Core
             return speed * (1 + stats.attack_speed / 100f);
         
         return speed;
+    }
+
+    [HarmonyPatch(typeof(Player), nameof(Player.FixedUpdate))]
+    [ClientOnlyPatch]
+    public static class Player_FixedUpdate_Patch
+    {
+        [UsedImplicitly]
+        private static void Postfix(Player __instance)
+        {
+            if (!__instance.IsDead())
+            {
+                float fixedDeltaTime = Time.fixedDeltaTime;
+                __instance.UpdateEnchantmentRegen(fixedDeltaTime);
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Player), nameof(Player.UpdateStats), typeof(float))]
+    [ClientOnlyPatch]
+    public static class Player_UpdateStats_Patch
+    {
+        [UsedImplicitly]
+        private static void Postfix(Player __instance, float dt)
+        {
+            __instance.UpdateEnchantmentStaminaRegen(dt);
+        }
+    }
+}
+
+public static class PlayerExtensions
+{
+    private static float enchantmentRegenTimer = 0f;
+
+    public static void UpdateEnchantmentRegen(this Player player, float dt)
+    {
+        enchantmentRegenTimer += dt;
+        if (enchantmentRegenTimer >= 10f)
+        {
+            enchantmentRegenTimer = 0f;
+            float regen = 0f;
+            foreach (var en in player.EquippedEnchantments())
+            {
+                if (en.Stats is { } stats)
+                {
+                    regen += stats.hp_regen;
+                }
+            }
+            if (regen > 0)
+            {
+                player.Heal(regen);
+            }
+        }
+    }
+
+    public static void UpdateEnchantmentStaminaRegen(this Player player, float dt)
+    {
+        if (player.IsDead() || player.InIntro() || player.IsTeleporting())
+        {
+            return;
+        }
+
+        bool flag = player.IsEncumbered();
+        float maxStamina = player.GetMaxStamina();
+        float num = 1f;
+        if (player.IsBlocking())
+        {
+            num *= 0.8f;
+        }
+        if ((player.IsSwimming() && !player.IsOnGround()) || player.InAttack() || player.InDodge() || player.m_wallRunning || flag)
+        {
+            num = 0f;
+        }
+
+        float additionalRegen = 0f;
+        foreach (var en in player.EquippedEnchantments())
+        {
+            if (en.Stats is { } stats)
+            {
+                additionalRegen += stats.stamina_regen;
+            }
+        }
+
+        if (additionalRegen > 0f)
+        {
+            float staminaMultiplier = 1f;
+            player.m_seman.ModifyStaminaRegen(ref staminaMultiplier);
+            float regenAmount = additionalRegen * staminaMultiplier * num * dt;
+
+            player.m_stamina = Mathf.Min(maxStamina, player.m_stamina + regenAmount * Game.m_staminaRegenRate);
+            player.m_nview.GetZDO().Set(ZDOVars.s_stamina, player.m_stamina);
+        }
     }
 }
