@@ -4,6 +4,7 @@ using kg.ValheimEnchantmentSystem.Misc;
 using ServerSync;
 using AutoISP;
 using static PrivilegeManager;
+using UnityEngine;
 
 namespace kg.ValheimEnchantmentSystem.Configs;
 
@@ -280,6 +281,48 @@ public static class SyncedData
         return target.TryGetValue(en.level, out Stat_Data increase) ? increase : null;
     }
 
+    public static Stat_Data GetRandomizedStatIncrease(Enchantment_Core.Enchanted en)
+    {
+        var allStats = GetStatIncrease(en);
+        if (allStats == null) return null;
+
+        var selectedStats = new Stat_Data();
+        var fields = typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance)
+                                       .Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float))
+                                       .ToList();
+
+        var lineCount = 2 + (en.level / 5); // Base + Level
+        while (UnityEngine.Random.value <= 0.2 && lineCount < fields.Count) // Extra by chance
+        {
+            lineCount++;
+        }
+        var randomFields = fields.OrderBy(f => UnityEngine.Random.value).Take(lineCount).ToList();
+        foreach (var field in randomFields)
+        {
+            var originalValue = Convert.ToDouble(field.GetValue(allStats));
+
+            float interval = 0.1f;
+            float randomMultiplier = Mathf.Round(UnityEngine.Random.Range(0.5f / interval, 1.0f / interval)) * interval;
+
+            if (UnityEngine.Random.value <= 0.10f) // 10% chance to get double bonus
+            {
+                randomMultiplier *= 2.0f;
+            }
+
+            var randomizedValue = originalValue * randomMultiplier;
+            if (field.FieldType == typeof(int))
+            {
+                field.SetValue(selectedStats, (int)randomizedValue);
+            }
+            else if (field.FieldType == typeof(float))
+            {
+                field.SetValue(selectedStats, (float)randomizedValue);
+            }
+        }
+
+        return selectedStats;
+    }
+
     public static EnchantmentReqs GetReqs(string prefab)
     {
         return prefab == null ? null : Synced_EnchantmentReqs.Value.Find(x => x.Items.Contains(prefab));
@@ -460,6 +503,16 @@ public static class SyncedData
         
         public void Serialize  (ref ZPackage pkg) => throw new NotImplementedException();
         public void Deserialize(ref ZPackage pkg) => throw new NotImplementedException();
+
+        public string SerializeJson()
+        {
+            return JsonUtility.ToJson(this);
+        }
+
+        public static Stat_Data DeserializeJson(string json)
+        {
+            return JsonUtility.FromJson<Stat_Data>(json);
+        }
     }
     
     [AutoSerialize]

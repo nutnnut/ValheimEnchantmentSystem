@@ -37,11 +37,45 @@ public static class Enchantment_Core
     public class Enchanted : ItemData
     {
         public int level;
+        private SyncedData.Stat_Data randomizedStats;
 
-        public SyncedData.Stat_Data Stats => SyncedData.GetStatIncrease(this);
+        public SyncedData.Stat_Data Stats
+        {
+            get
+            {
+                if (randomizedStats == null)
+                {
+                    if (Item.m_customData != null && Item.m_customData.TryGetValue("randomizedStats", out var statsString))
+                    {
+                        randomizedStats = SyncedData.Stat_Data.DeserializeJson(statsString);
+                        Debug.Log("Deserialized Stats: " + statsString);
+                    }
+                    else
+                    {
+                        Debug.Log("not found, randomizing...");
+                        randomizeAndSaveStats();
+                    }
+                }
+                return randomizedStats;
+            }
+        }
+
+        private void randomizeAndSaveStats()
+        {
+            randomizedStats = SyncedData.GetRandomizedStatIncrease(this);
+            Debug.Log("randomizedStats: " + randomizedStats);
+            if (Item.m_customData != null)
+            {
+                Item.m_customData["randomizedStats"] = randomizedStats.SerializeJson();
+                Debug.Log("Serialized and stored randomizedStats: " + Item.m_customData["randomizedStats"]);
+            }
+        }
+
 
         public override void Save()
         {
+            Debug.LogWarning("Randomizing on Save");
+            randomizeAndSaveStats();
             Value = level.ToString();
             Enchantment_VFX.UpdateGrid();
         }
@@ -66,6 +100,9 @@ public static class Enchantment_Core
             {
                 ValheimEnchantmentSystem._thistype.DelayedInvoke(() =>
                 {
+                    Debug.LogWarning("Upgraded");
+                    randomizeAndSaveStats();
+
                     Other_Mods_APIs.ApplyAPIs_Upgraded(this);
                     Enchantment_VFX.UpdateGrid();
                 }, 1);
@@ -194,7 +231,6 @@ public static class Enchantment_Core
                         else
                         {
                             msg = "$enchantment_fail_nochange".Localize(Item.m_shared.m_name.Localize(), level.ToString());
-                            Save();
                         }
                         break;
                 }
@@ -205,7 +241,6 @@ public static class Enchantment_Core
             else
             {
                 msg = "$enchantment_fail_nochange".Localize(Item.m_shared.m_name.Localize(), level.ToString());
-                Save();
                 if (SyncedData.EnchantmentEnableNotifications.Value && SyncedData.EnchantmentNotificationMinLevel.Value <= level)
                     Notifications_UI.AddNotification(Player.m_localPlayer.GetPlayerName(), Item.m_dropPrefab.name, (int)Notifications_UI.NotificationItemResult.LevelDecrease, prevLevel, level);
             }
@@ -269,7 +304,7 @@ public static class Enchantment_Core
             bool blockShowEnchant = false;
             if (item.Data().Get<Enchanted>() is { level: > 0 } en)
             {
-                SyncedData.Stat_Data stats = SyncedData.GetStatIncrease(en);
+                SyncedData.Stat_Data stats = en.Stats;
                 string color = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
                 
                 if (stats)
@@ -422,7 +457,7 @@ public static class Enchantment_Core
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && SyncedData.GetStatIncrease(data) is {} stats)
+            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is {} stats)
             {
                 __result *= 1 + stats.armor_percentage / 100f;
                 __result += stats.armor;
@@ -443,7 +478,7 @@ public static class Enchantment_Core
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && SyncedData.GetStatIncrease(data) is {} stats)
+            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is {} stats)
             {
                 __result *= 1 + stats.armor_percentage / 100f;
                 __result += stats.armor;
@@ -464,7 +499,7 @@ public static class Enchantment_Core
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref HitData.DamageTypes __result)
         {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && SyncedData.GetStatIncrease(data) is {} stats)
+            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is {} stats)
             {
                 __result.Modify(1 + stats.damage_percentage / 100f);
                 __result.m_blunt += stats.damage_blunt;
@@ -554,10 +589,19 @@ public static class Enchantment_Core
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && SyncedData.GetStatIncrease(data) is {} stats)
+            try
             {
-                __result *= 1 + stats.durability_percentage / 100f;
-                __result += stats.durability;
+                var data = __instance.Data().Get<Enchanted>();
+                if (data?.level > 0 && data.Stats != null)
+                {
+                    var stats = data.Stats;
+                    __result *= 1 + stats.durability_percentage / 100f;
+                    __result += stats.durability;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error in ApplySkillToDurability.Postfix: {ex}");
             }
         }
     }
@@ -569,7 +613,7 @@ public static class Enchantment_Core
         ItemDrop.ItemData weapon = Player.m_localPlayer.GetCurrentWeapon();
         if (weapon == null) return speed;
         
-        if (weapon.Data().Get<Enchanted>() is { level: > 0 } data && SyncedData.GetStatIncrease(data) is { attack_speed: > 0} stats)
+        if (weapon.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { attack_speed: > 0} stats)
             return speed * (1 + stats.attack_speed / 100f);
         
         return speed;
