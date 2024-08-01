@@ -288,8 +288,9 @@ public static class SyncedData
 
         var selectedStats = new Stat_Data();
         var fields = typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance)
-                                       .Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float))
-                                       .ToList();
+                                   .Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float))
+                                   .Where(f => Convert.ToDouble(f.GetValue(allStats)) != 0)
+                                   .ToList();
 
         var lineCount = 2 + (en.level / 5); // Base + Level
         while (UnityEngine.Random.value <= 0.2 && lineCount < fields.Count) // Extra by chance
