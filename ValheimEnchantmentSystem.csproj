@@ -261,6 +261,9 @@
     <Reference Include="Jewelcrafting">
       <HintPath>Libs\JewelcraftingAPI.dll</HintPath>
     </Reference>
+    <Reference Include="JewelcraftingAPI">
+      <HintPath>Libs\JewelcraftingAPI.dll</HintPath>
+    </Reference>
     <Reference Include="netstandard" />
     <Reference Include="System" />
     <Reference Include="Unity.TextMeshPro">
@@ -291,7 +294,7 @@
       <HintPath>Libs\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.JSONSerializeModule">
-      <HintPath>C:\Program Files\Unity\Hub\Editor\2022.3.40f1\Editor\Data\Managed\UnityEngine\UnityEngine.JSONSerializeModule.dll</HintPath>
+      <HintPath>Libs\UnityEngine.JSONSerializeModule.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule">
       <HintPath>Libs\UnityEngine.ParticleSystemModule.dll</HintPath>

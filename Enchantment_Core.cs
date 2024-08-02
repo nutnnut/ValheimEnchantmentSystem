@@ -53,14 +53,14 @@ public static class Enchantment_Core
                     else
                     {
                         Debug.Log("not found, randomizing...");
-                        randomizeAndSaveStats();
+                        RandomizeAndSaveStats();
                     }
                 }
                 return randomizedStats;
             }
         }
 
-        private void randomizeAndSaveStats()
+        private void RandomizeAndSaveStats()
         {
             randomizedStats = SyncedData.GetRandomizedStatIncrease(this);
             Debug.Log("randomizedStats: " + randomizedStats);
@@ -75,7 +75,7 @@ public static class Enchantment_Core
         public override void Save()
         {
             Debug.LogWarning("Randomizing on Save");
-            randomizeAndSaveStats();
+            RandomizeAndSaveStats();
             Value = level.ToString();
             Enchantment_VFX.UpdateGrid();
         }
@@ -101,7 +101,7 @@ public static class Enchantment_Core
                 ValheimEnchantmentSystem._thistype.DelayedInvoke(() =>
                 {
                     Debug.LogWarning("Upgraded");
-                    randomizeAndSaveStats();
+                    RandomizeAndSaveStats();
 
                     Other_Mods_APIs.ApplyAPIs_Upgraded(this);
                     Enchantment_VFX.UpdateGrid();
@@ -501,18 +501,19 @@ public static class Enchantment_Core
         {
             if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is {} stats)
             {
+                float rawDmg = __result.GetTotalBlockableDamage();
                 __result.Modify(1 + stats.damage_percentage / 100f);
-                __result.m_blunt += stats.damage_blunt;
-                __result.m_slash += stats.damage_slash;
-                __result.m_pierce += stats.damage_pierce;
-                __result.m_fire += stats.damage_fire;
-                __result.m_frost += stats.damage_frost;
-                __result.m_lightning += stats.damage_lightning;
-                __result.m_poison += stats.damage_poison;
-                __result.m_spirit += stats.damage_spirit;
-                __result.m_damage += stats.damage_true;
-                __result.m_chop += stats.damage_chop;
-                __result.m_pickaxe += stats.damage_pickaxe;
+                __result.m_blunt += rawDmg * stats.damage_blunt_percentage / 100f + stats.damage_blunt;
+                __result.m_slash += rawDmg * stats.damage_slash_percentage / 100f + stats.damage_slash;
+                __result.m_pierce += rawDmg * stats.damage_pierce_percentage / 100f + stats.damage_pierce;
+                __result.m_fire += rawDmg * stats.damage_fire_percentage / 100f + stats.damage_fire;
+                __result.m_frost += rawDmg * stats.damage_frost_percentage / 100f + stats.damage_frost;
+                __result.m_lightning += rawDmg * stats.damage_lightning_percentage / 100f + stats.damage_lightning;
+                __result.m_poison += rawDmg * stats.damage_poison_percentage / 100f + stats.damage_poison;
+                __result.m_spirit += rawDmg * stats.damage_spirit_percentage / 100f + stats.damage_spirit;
+                __result.m_damage += rawDmg * stats.damage_true_percentage / 100f + stats.damage_true;
+                __result.m_chop += rawDmg * stats.damage_chop_percentage / 100f + stats.damage_chop;
+                __result.m_pickaxe += rawDmg * stats.damage_pickaxe_percentage / 100f + stats.damage_pickaxe;
             }
         }
     }
