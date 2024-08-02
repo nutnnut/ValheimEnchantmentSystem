@@ -22,7 +22,7 @@ public static class TerminalCommands
                 if(weapon == null || !weapon.m_dropPrefab) return;
                 Enchantment_Core.Enchanted en = weapon.Data().GetOrCreate<Enchantment_Core.Enchanted>();
                 en.level = level;
-                en.Save();
+                en.EnchantReroll();
                 Chat.instance.m_hideTimer = 0f;
                 Chat.instance.AddString("Enchantment level set to " + level);
                 ValheimEnchantmentSystem._thistype.StartCoroutine(Enchantment_Core.FrameSkipEquip(weapon));
@@ -37,7 +37,7 @@ public static class TerminalCommands
                 {
                     Enchantment_Core.Enchanted en = item.Data().GetOrCreate<Enchantment_Core.Enchanted>();
                     en.level = level;
-                    en.Save();
+                    en.EnchantReroll();
                 }
             });
         }

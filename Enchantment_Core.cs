@@ -247,7 +247,7 @@ public static class Enchantment_Core
             return msg;
         }
 
-        private void EnchantReroll()
+        public void EnchantReroll()
         {
             RandomizeAndSaveStats();
             Save();
@@ -255,13 +255,13 @@ public static class Enchantment_Core
             ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
         }
 
-        private void EnchantLevelUp()
+        public void EnchantLevelUp()
         {
             level++;
             EnchantReroll();
         }
 
-        private void EnchantLevelDown()
+        public void EnchantLevelDown()
         {
             level = Mathf.Max(0, level - 1);
             EnchantReroll();
