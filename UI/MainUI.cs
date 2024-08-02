@@ -41,6 +41,9 @@ public static class VES_UI
     private static Transform UseBless_Transform;
     private static Image UseBless_Icon;
 
+    private static Transform Reroll_Transform;
+    private static Image Reroll_Icon;
+
     private static Transform Start_Transform;
     private static Text Start_Text;
 
@@ -54,6 +57,7 @@ public static class VES_UI
     private static float _itemStartX, _scrollStartX;
     private static float _startY;
     private static bool _useBless;
+    private static bool _reroll;
     private static float _fillDistance;
     private static ItemDrop.ItemData _currentItem;
     private static bool _enchantProcessing;
@@ -106,6 +110,16 @@ public static class VES_UI
         UseBless_Transform.Find("Text").GetComponent<Text>().text = "$enchantment_usebless".Localize();
         UseBless_Transform.Find("Text").GetComponent<Text>().color = Color.yellow;
 
+        Reroll_Transform = UI.transform.Find("Canvas/Background/Reroll");
+        if (Reroll_Transform == null)
+        {
+            Debug.LogError("Reroll Transform not found!");
+            return;
+        }
+        Reroll_Icon = Reroll_Transform.Find("Icon").GetComponent<Image>();
+        Reroll_Transform.Find("Text").GetComponent<Text>().text = "$enchantment_reroll".Localize();
+        Reroll_Transform.Find("Text").GetComponent<Text>().color = Color.magenta;
+
         Start_Transform = UI.transform.Find("Canvas/Background/Start");
         Start_Text = Start_Transform.Find("Text").GetComponent<Text>();
 
@@ -125,6 +139,11 @@ public static class VES_UI
         {
             PlayClick();
             UseBless_ButtonClick();
+        });
+        Reroll_Transform.GetComponent<Button>().onClick.AddListener(() =>
+        {
+            PlayClick();
+            Reroll_ButtonClick();
         });
         Start_Transform.GetComponent<Button>().onClick.AddListener(() =>
         {
@@ -263,7 +282,15 @@ public static class VES_UI
             Progress_Transform.gameObject.SetActive(false);
 
             Enchantment_Core.Enchanted en = _currentItem.Data().GetOrCreate<Enchantment_Core.Enchanted>();
-            bool enchanted = en.Enchant(_useBless, out string msg);
+            bool enchanted;
+            string msg;
+            if (_reroll)
+            {
+                enchanted = en.Reroll(_useBless, out msg);
+            } else
+            {
+                enchanted = en.Enchant(_useBless, out msg);
+            }
 
             Item_Text.text = msg;
             Item_Text.color = enchanted ? Color.green : Color.red;
@@ -346,7 +373,11 @@ public static class VES_UI
         UseBless_Transform.gameObject.SetActive(false);
         UseBless_Icon.gameObject.SetActive(false);
         _useBless = false;
-        
+
+        Reroll_Icon.gameObject.SetActive(false);
+        Reroll_Icon.gameObject.SetActive(false);
+        _reroll = false;
+
         Start_Transform.gameObject.SetActive(false);
 
         Progress_Transform.gameObject.SetActive(false);
@@ -385,6 +416,34 @@ public static class VES_UI
             Scroll_Trail.color = new Color(1f, 1f, 1f, 0.8f);
         }
         
+    }
+
+    private static void Reroll_ButtonClick()
+    {
+        if (_currentItem == null) return;
+        _reroll = !_reroll;
+        Reroll_Icon.gameObject.SetActive(_reroll);
+
+        SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(_currentItem.m_dropPrefab?.name);
+
+        SyncedData.SingleReq singleReq = _useBless ? reqs.blessed_enchant_prefab : reqs.enchant_prefab;
+        if (singleReq.IsValid())
+        {
+            GameObject enchant_item = ZNetScene.instance.GetPrefab(singleReq.prefab);
+            Scroll_Text.text = enchant_item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name.Localize() + " <color=yellow>x" + singleReq.amount + "</color>";
+            Scroll_Text.color = Utils.CustomCountItemsNoLevel(singleReq.prefab) >= singleReq.amount ? Color.white : Color.red;
+            Scroll_Icon.sprite = enchant_item.GetComponent<ItemDrop>().m_itemData.GetIcon();
+            Scroll_Trail.gameObject.SetActive(true);
+            Scroll_Trail.color = _useBless ? new Color(1f, 1f, 0f, 0.8f) : new Color(1f, 1f, 1f, 0.8f);
+        }
+        else
+        {
+            Scroll_Text.text = "$enchantment_noenchantitems".Localize();
+            Scroll_Text.color = Color.red;
+            Scroll_Icon.sprite = Default_QuestionMark;
+            Scroll_Trail.gameObject.SetActive(false);
+            Scroll_Trail.color = new Color(1f, 1f, 1f, 0.8f);
+        }
     }
 
     private static void SelectItem(ItemDrop.ItemData item)

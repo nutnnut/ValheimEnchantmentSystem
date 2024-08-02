@@ -6,6 +6,7 @@ using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Configs;
 using kg.ValheimEnchantmentSystem.Misc;
 using kg.ValheimEnchantmentSystem.UI;
+using static kg.ValheimEnchantmentSystem.Configs.SyncedData;
 using Random = UnityEngine.Random;
 
 namespace kg.ValheimEnchantmentSystem;
@@ -52,7 +53,7 @@ public static class Enchantment_Core
                     }
                     else
                     {
-                        Debug.Log("not found, randomizing...");
+                        Debug.LogWarning("Stats not found, randomizing...");
                         RandomizeAndSaveStats();
                     }
                 }
@@ -63,7 +64,6 @@ public static class Enchantment_Core
         private void RandomizeAndSaveStats()
         {
             randomizedStats = SyncedData.GetRandomizedStatIncrease(this);
-            Debug.Log("randomizedStats: " + randomizedStats);
             if (Item.m_customData != null)
             {
                 Item.m_customData["randomizedStats"] = randomizedStats.SerializeJson();
@@ -74,8 +74,6 @@ public static class Enchantment_Core
 
         public override void Save()
         {
-            Debug.LogWarning("Randomizing on Save");
-            RandomizeAndSaveStats();
             Value = level.ToString();
             Enchantment_VFX.UpdateGrid();
         }
@@ -84,29 +82,6 @@ public static class Enchantment_Core
         {
             if (string.IsNullOrEmpty(Value)) return;
             level = int.TryParse(Value, out int lvl) ? lvl : 0;
-        }
-
-        public override void Upgraded()
-        {
-            if (SyncedData.DropEnchantmentOnUpgrade.Value)
-            {
-                ValheimEnchantmentSystem._thistype.DelayedInvoke(() =>
-                {
-                    Item.Data().Remove<Enchanted>();
-                    Enchantment_VFX.UpdateGrid();
-                }, 1);
-            }
-            else
-            {
-                ValheimEnchantmentSystem._thistype.DelayedInvoke(() =>
-                {
-                    Debug.LogWarning("Upgraded");
-                    RandomizeAndSaveStats();
-
-                    Other_Mods_APIs.ApplyAPIs_Upgraded(this);
-                    Enchantment_VFX.UpdateGrid();
-                }, 1);
-            }
         }
 
         public int GetEnchantmentChance()
@@ -153,6 +128,34 @@ public static class Enchantment_Core
             return random <= chanceData.success + additionalChance;
         }
 
+        public bool Reroll(bool safeEnchant, out string msg)
+        {
+            msg = "";
+            if (!CanEnchant())
+            {
+                msg = "$enchantment_cannotbe".Localize();
+                return false;
+            }
+
+            if (!HaveReqs(safeEnchant))
+            {
+                msg = "$enchantment_nomaterials".Localize();
+                return false;
+            }
+
+            if (Random.Range(0f, 100f) <= 80f) // TODO: config chance
+            {
+                EnchantReroll();
+                msg = "$enchantment_success_reroll".Localize(Item.m_shared.m_name.Localize(), level.ToString());
+                return true;
+            }
+
+            bool destroy = Random.Range(0f, 100f) <= GetPrevEnchantmentChance(this).destroy;
+            msg = HandleFailedEnchant(safeEnchant, level, destroy);
+
+            return false;
+        }
+
         public bool Enchant(bool safeEnchant, out string msg)
         {
             msg = "";
@@ -171,16 +174,21 @@ public static class Enchantment_Core
             int prevLevel = level;
             if (CheckRandom(out bool destroy))
             {
-                level++;
-                Save();
-                Other_Mods_APIs.ApplyAPIs(this);
-                ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
+                EnchantLevelUp();
                 msg = "$enchantment_success".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
                 if (SyncedData.EnchantmentEnableNotifications.Value && SyncedData.EnchantmentNotificationMinLevel.Value <= level)
                     Notifications_UI.AddNotification(Player.m_localPlayer.GetPlayerName(), Item.m_dropPrefab.name, (int)Notifications_UI.NotificationItemResult.Success, prevLevel, level);
                 return true;
             }
-            
+
+            msg = HandleFailedEnchant(safeEnchant, level, destroy);
+
+            return false;
+        }
+
+        private string HandleFailedEnchant(bool safeEnchant, int prevLevel, bool destroy)
+        {
+            string msg;
             if (SyncedData.SafetyLevel.Value <= level && !safeEnchant)
             {
                 Notifications_UI.NotificationItemResult notification;
@@ -188,10 +196,7 @@ public static class Enchantment_Core
                 {
                     case SyncedData.ItemDesctructionTypeEnum.LevelDecrease:
                     default:
-                        level = Mathf.Max(0, level - 1);
-                        Save();
-                        Other_Mods_APIs.ApplyAPIs(this);
-                        ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
+                        EnchantLevelDown();
                         msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
                         notification = Notifications_UI.NotificationItemResult.LevelDecrease;
                         break;
@@ -211,10 +216,7 @@ public static class Enchantment_Core
                         }
                         else
                         {
-                            level = Mathf.Max(0, level - 1);
-                            Save();
-                            Other_Mods_APIs.ApplyAPIs(this);
-                            ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
+                            EnchantLevelDown();
                             msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
                         }
                         break;
@@ -222,10 +224,7 @@ public static class Enchantment_Core
                         notification = destroy ? Notifications_UI.NotificationItemResult.LevelDecrease : Notifications_UI.NotificationItemResult.LevelDecrease;
                         if (destroy)
                         {
-                            level = Mathf.Max(0, level - 1);
-                            Save();
-                            Other_Mods_APIs.ApplyAPIs(this);
-                            ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
+                            EnchantLevelDown();
                             msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
                         }
                         else
@@ -234,7 +233,7 @@ public static class Enchantment_Core
                         }
                         break;
                 }
-                
+
                 if (SyncedData.EnchantmentEnableNotifications.Value && SyncedData.EnchantmentNotificationMinLevel.Value <= level)
                     Notifications_UI.AddNotification(Player.m_localPlayer.GetPlayerName(), Item.m_dropPrefab.name, (int)notification, prevLevel, level);
             }
@@ -244,9 +243,30 @@ public static class Enchantment_Core
                 if (SyncedData.EnchantmentEnableNotifications.Value && SyncedData.EnchantmentNotificationMinLevel.Value <= level)
                     Notifications_UI.AddNotification(Player.m_localPlayer.GetPlayerName(), Item.m_dropPrefab.name, (int)Notifications_UI.NotificationItemResult.LevelDecrease, prevLevel, level);
             }
-            
-            return false;
+
+            return msg;
         }
+
+        private void EnchantReroll()
+        {
+            RandomizeAndSaveStats();
+            Save();
+            Other_Mods_APIs.ApplyAPIs(this);
+            ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
+        }
+
+        private void EnchantLevelUp()
+        {
+            level++;
+            EnchantReroll();
+        }
+
+        private void EnchantLevelDown()
+        {
+            level = Mathf.Max(0, level - 1);
+            EnchantReroll();
+        }
+
         public static implicit operator bool(Enchanted en) => en != null;
     }
 

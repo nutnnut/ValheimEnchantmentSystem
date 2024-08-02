@@ -253,6 +253,9 @@ public static class SyncedData
         return trimApha ? defaultValue.Substring(0,7) : defaultValue;
     }
 
+    public static Chance_Data GetPrevEnchantmentChance(Enchantment_Core.Enchanted en)
+        => GetEnchantmentChance(en.Item.m_dropPrefab?.name, en.level - 1);
+
     public static Chance_Data GetEnchantmentChance(Enchantment_Core.Enchanted en)
         => GetEnchantmentChance(en.Item.m_dropPrefab?.name, en.level);
 
@@ -292,8 +295,8 @@ public static class SyncedData
                                    .Where(f => Convert.ToDouble(f.GetValue(allStats)) != 0)
                                    .ToList();
 
-        var lineCount = 2 + (en.level / 5); // Base + Level
-        while (UnityEngine.Random.value <= 0.2 && lineCount < fields.Count) // Extra by chance
+        var lineCount = 2 + (en.level / 4); // Base + Level
+        while (UnityEngine.Random.value <= 0.5 && lineCount < fields.Count) // Extra by chance
         {
             lineCount++;
         }
@@ -313,7 +316,7 @@ public static class SyncedData
             var randomizedValue = originalValue * randomMultiplier;
             if (field.FieldType == typeof(int))
             {
-                field.SetValue(selectedStats, (int)randomizedValue);
+                field.SetValue(selectedStats, (int)Math.Round(randomizedValue, MidpointRounding.AwayFromZero));
             }
             else if (field.FieldType == typeof(float))
             {
