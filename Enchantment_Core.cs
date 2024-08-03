@@ -354,6 +354,7 @@ public static class Enchantment_Core
 
     private static string GenerateAsteriskSuffix(Enchanted en)
     {
+        if (en.randomizedFloat == null) return "";
         float sumOfFloats = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
                     .Where(f => f.FieldType == typeof(float))
                     .Sum(f => (float)f.GetValue(en.randomizedFloat));
