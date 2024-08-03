@@ -136,9 +136,14 @@ public static class Enchantment_Core
             return false;
         }
 
-        private bool CanEnchant()
+        public bool CanEnchant()
         {
             if (GetEnchantmentChance() <= 0) return false;
+            return IsEnchantablePrefab();
+        }
+
+        public bool IsEnchantablePrefab()
+        {
             SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(Item.m_dropPrefab.name);
             return reqs != null;
         }
