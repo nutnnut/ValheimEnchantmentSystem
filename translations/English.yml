@@ -1,6 +1,6 @@
 enchantment_success: "Enchantment successful!\n($1 +$2 -> +$3)"
 enchantment_success_reroll: "Reroll successful!\n($1 +$2)"
-enchantment_fail_destroyed: "Enchantment failed!\n($1 destroyed)"
+enchantment_fail_destroyed: "Enchantment failed!\n($1 +$2 destroyed)"
 enchantment_fail_leveldown: "Enchantment failed!\n($1 +$2 -> -$3)"
 enchantment_fail_nochange: "Enchantment failed!\n($1 +$2)"
 enchantment_cannotbe: "This item cannot be enchanted"
