@@ -20,7 +20,7 @@ public static class Enchantment_Core
         if (ValheimEnchantmentSystem.NoGraphics) return;
         AnimationSpeedManager.Add(ModifyAttackSpeed);
     }
-    
+
     public static IEnumerator FrameSkipEquip(ItemDrop.ItemData weapon)
     {
         if (!Player.m_localPlayer.IsItemEquiped(weapon) || !weapon.IsWeapon()) yield break;
@@ -38,50 +38,68 @@ public static class Enchantment_Core
     public class Enchanted : ItemData
     {
         public int level;
-        private SyncedData.Stat_Data randomizedStats;
+        private SyncedData.Stat_Data cachedMultipliedStats;
+        public SyncedData.Stat_Data_Float randomizedFloat;
 
         public SyncedData.Stat_Data Stats
         {
             get
             {
-                if (randomizedStats == null)
+                if (cachedMultipliedStats != null)
                 {
-                    if (Item.m_customData != null && Item.m_customData.TryGetValue("randomizedStats", out var statsString))
-                    {
-                        randomizedStats = SyncedData.Stat_Data.DeserializeJson(statsString);
-                        Debug.Log("Deserialized Stats: " + statsString);
-                    }
-                    else
-                    {
-                        Debug.LogWarning("Stats not found, randomizing...");
-                        RandomizeAndSaveStats();
-                    }
+                    return cachedMultipliedStats;
                 }
-                return randomizedStats;
+                if (randomizedFloat == null)
+                {
+                    Debug.Log("VES Floats Not Found");
+                    RandomizeAndSaveFloats();
+                }
+                cachedMultipliedStats = SyncedData.GetStatIncrease(this).ApplyMultiplier(randomizedFloat);
+                return cachedMultipliedStats;
             }
         }
 
-        private void RandomizeAndSaveStats()
+        private void RandomizeAndSaveFloats()
         {
-            randomizedStats = SyncedData.GetRandomizedStatIncrease(this);
-            if (Item.m_customData != null)
-            {
-                Item.m_customData["randomizedStats"] = randomizedStats.SerializeJson();
-                Debug.Log("Serialized and stored randomizedStats: " + Item.m_customData["randomizedStats"]);
-            }
+            cachedMultipliedStats = null;
+            randomizedFloat = SyncedData.GetRandomizedMultiplier(this);
+            Debug.Log("VES randomizedFloat: " + randomizedFloat.SerializeJson());
+            Save();
         }
-
 
         public override void Save()
         {
-            Value = level.ToString();
+            if (randomizedFloat != null)
+            {
+                Value = $"{level}|{randomizedFloat.SerializeJson()}";
+            }
+            else
+            {
+                Value = $"{level}|";
+            }
             Enchantment_VFX.UpdateGrid();
         }
 
         public override void Load()
         {
             if (string.IsNullOrEmpty(Value)) return;
-            level = int.TryParse(Value, out int lvl) ? lvl : 0;
+            var parts = Value.Split('|');
+            if (parts.Length == 2 && int.TryParse(parts[0], out level))
+            {
+                if (!string.IsNullOrEmpty(parts[1]))
+                {
+                    randomizedFloat = SyncedData.Stat_Data_Float.DeserializeJson(parts[1]);
+                }
+            }
+            else
+            {
+                Debug.LogWarning("VES Failed to deserialize floats...");
+            }
+        }
+
+        public int GetRerollChance()
+        {
+            return SyncedData.GetEnchantmentChance(this).reroll;
         }
 
         public int GetEnchantmentChance()
@@ -145,8 +163,9 @@ public static class Enchantment_Core
 
             if (Random.Range(0f, 100f) <= 80f) // TODO: config chance
             {
+                string oldSuffix = GenerateAsteriskSuffix(this);
                 EnchantReroll();
-                msg = "$enchantment_success_reroll".Localize(Item.m_shared.m_name.Localize(), level.ToString());
+                msg = "$enchantment_success_reroll".Localize(Item.m_shared.m_name.Localize() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
                 return true;
             }
 
@@ -170,12 +189,13 @@ public static class Enchantment_Core
                 msg = "$enchantment_nomaterials".Localize();
                 return false;
             }
-            
+
             int prevLevel = level;
             if (CheckRandom(out bool destroy))
             {
+                string oldSuffix = GenerateAsteriskSuffix(this);
                 EnchantLevelUp();
-                msg = "$enchantment_success".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
+                msg = "$enchantment_success".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
                 if (SyncedData.EnchantmentEnableNotifications.Value && SyncedData.EnchantmentNotificationMinLevel.Value <= level)
                     Notifications_UI.AddNotification(Player.m_localPlayer.GetPlayerName(), Item.m_dropPrefab.name, (int)Notifications_UI.NotificationItemResult.Success, prevLevel, level);
                 return true;
@@ -189,6 +209,7 @@ public static class Enchantment_Core
         private string HandleFailedEnchant(bool safeEnchant, int prevLevel, bool destroy)
         {
             string msg;
+            string oldSuffix = GenerateAsteriskSuffix(this);
             if (SyncedData.SafetyLevel.Value <= level && !safeEnchant)
             {
                 Notifications_UI.NotificationItemResult notification;
@@ -197,13 +218,13 @@ public static class Enchantment_Core
                     case SyncedData.ItemDesctructionTypeEnum.LevelDecrease:
                     default:
                         EnchantLevelDown();
-                        msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
+                        msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
                         notification = Notifications_UI.NotificationItemResult.LevelDecrease;
                         break;
                     case SyncedData.ItemDesctructionTypeEnum.Destroy:
                         Player.m_localPlayer.UnequipItem(Item);
                         Player.m_localPlayer.m_inventory.RemoveItem(Item);
-                        msg = "$enchantment_fail_destroyed".Localize(Item.m_shared.m_name.Localize());
+                        msg = "$enchantment_fail_destroyed".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix);
                         notification = Notifications_UI.NotificationItemResult.Destroyed;
                         break;
                     case SyncedData.ItemDesctructionTypeEnum.Combined:
@@ -212,12 +233,12 @@ public static class Enchantment_Core
                         {
                             Player.m_localPlayer.UnequipItem(Item);
                             Player.m_localPlayer.m_inventory.RemoveItem(Item);
-                            msg = "$enchantment_fail_destroyed".Localize(Item.m_shared.m_name.Localize());
+                            msg = "$enchantment_fail_destroyed".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix);
                         }
                         else
                         {
                             EnchantLevelDown();
-                            msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
+                            msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
                         }
                         break;
                     case SyncedData.ItemDesctructionTypeEnum.CombinedEasy:
@@ -225,11 +246,11 @@ public static class Enchantment_Core
                         if (destroy)
                         {
                             EnchantLevelDown();
-                            msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
+                            msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
                         }
                         else
                         {
-                            msg = "$enchantment_fail_nochange".Localize(Item.m_shared.m_name.Localize(), level.ToString());
+                            msg = "$enchantment_fail_nochange".Localize(Item.m_shared.m_name.Localize(), level.ToString() + oldSuffix);
                         }
                         break;
                 }
@@ -239,7 +260,7 @@ public static class Enchantment_Core
             }
             else
             {
-                msg = "$enchantment_fail_nochange".Localize(Item.m_shared.m_name.Localize(), level.ToString());
+                msg = "$enchantment_fail_nochange".Localize(Item.m_shared.m_name.Localize(), level.ToString() + oldSuffix);
                 if (SyncedData.EnchantmentEnableNotifications.Value && SyncedData.EnchantmentNotificationMinLevel.Value <= level)
                     Notifications_UI.AddNotification(Player.m_localPlayer.GetPlayerName(), Item.m_dropPrefab.name, (int)Notifications_UI.NotificationItemResult.LevelDecrease, prevLevel, level);
             }
@@ -249,8 +270,7 @@ public static class Enchantment_Core
 
         public void EnchantReroll()
         {
-            RandomizeAndSaveStats();
-            Save();
+            RandomizeAndSaveFloats();
             Other_Mods_APIs.ApplyAPIs(this);
             ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
         }
@@ -278,10 +298,11 @@ public static class Enchantment_Core
         private static void Prefix(InventoryGrid __instance, ItemDrop.ItemData item, out string __state)
         {
             __state = null;
-            if (item?.Data().Get<Enchanted>() is not { level: > 0 } idm) return;
+            if (item?.Data().Get<Enchanted>() is not { level: > 0 } en) return;
             __state = item.m_shared.m_name;
-            string color = SyncedData.GetColor(idm, out _, true).IncreaseColorLight();
-            item.m_shared.m_name += $" (<color={color}>+{idm.level}</color>)";
+
+            string suffix = GenerateNameSuffix(en);
+            item.m_shared.m_name += suffix;
         }
 
         [UsedImplicitly]
@@ -299,11 +320,11 @@ public static class Enchantment_Core
         private static void Prefix(ItemDrop __instance, out string __state)
         {
             __state = null;
-            if (__instance.m_itemData?.Data().Get<Enchanted>() is not { level: > 0 } idm) return;
+            if (__instance.m_itemData?.Data().Get<Enchanted>() is not { level: > 0 } en) return;
             __state = __instance.m_itemData.m_shared.m_name;
-            string color = SyncedData.GetColor(idm, out _, true)
-                .IncreaseColorLight();
-            __instance.m_itemData.m_shared.m_name += $" (<color={color}>+{idm.level}</color>)";
+
+            string suffix = GenerateNameSuffix(en);
+            __instance.m_itemData.m_shared.m_name += suffix;
         }
 
         [UsedImplicitly]
@@ -311,6 +332,63 @@ public static class Enchantment_Core
         {
             if (__state != null) __instance.m_itemData.m_shared.m_name = __state;
         }
+    }
+
+    private static string GenerateNameSuffix(Enchanted en)
+    {
+        string suffix = "";
+        string color = SyncedData.GetColor(en, out _, true)
+            .IncreaseColorLight();
+
+        if (en.randomizedFloat == null)
+        {
+            Debug.LogError("VES Failed to get float for suffix");
+            return $" (<color={color}>+{en.level}</color>)";
+        }
+
+        string asteriskText = GenerateAsteriskSuffix(en);
+        suffix += $" (<color={color}>+{en.level}</color>{asteriskText})";
+
+        return suffix;
+    }
+
+    private static string GenerateAsteriskSuffix(Enchanted en)
+    {
+        float sumOfFloats = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
+                    .Where(f => f.FieldType == typeof(float))
+                    .Sum(f => (float)f.GetValue(en.randomizedFloat));
+
+        int numberOfAsterisks = (int)Math.Round(Math.Max(sumOfFloats - 1, 0), MidpointRounding.AwayFromZero);
+        string asterisks = new string('*', numberOfAsterisks);
+
+        string asteriskColor;
+        if (numberOfAsterisks >= 10)
+        {
+            asteriskColor = "#FF0000"; // Red
+        }
+        else if (numberOfAsterisks >= 8)
+        {
+            asteriskColor = "#FFA500"; // Orange
+        }
+        else if (numberOfAsterisks >= 6)
+        {
+            asteriskColor = "#CC00CC"; // Purple
+        }
+        else if (numberOfAsterisks >= 4)
+        {
+            asteriskColor = "#4444FF"; // Blue
+        }
+        else if (numberOfAsterisks >= 2)
+        {
+            asteriskColor = "#00FF00"; // Green
+        }
+        else
+        {
+            asteriskColor = "#777777"; // Grey
+        }
+
+        string asteriskText = $"<color={asteriskColor}>{asterisks}</color>";
+        return asteriskText;
     }
 
     [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData),
@@ -326,7 +404,7 @@ public static class Enchantment_Core
             {
                 SyncedData.Stat_Data stats = en.Stats;
                 string color = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
-                
+
                 if (stats)
                 {
                     int damagePercent = stats.damage_percentage;
@@ -336,7 +414,7 @@ public static class Enchantment_Core
                         __result = new Regex("(\\$item_durability.*)").Replace(__result, $"$1 (<color={color}>+{stats.durability_percentage}%</color>)");
 
                     __result += "\n";
-                    
+
                     if (damagePercent > 0)
                     {
                         Player.m_localPlayer.GetSkills().GetRandomSkillRange(out float minFactor, out float maxFactor, item.m_shared.m_skillType);
@@ -477,7 +555,7 @@ public static class Enchantment_Core
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is {} stats)
+            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
             {
                 __result *= 1 + stats.armor_percentage / 100f;
                 __result += stats.armor;
@@ -498,7 +576,7 @@ public static class Enchantment_Core
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is {} stats)
+            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
             {
                 __result *= 1 + stats.armor_percentage / 100f;
                 __result += stats.armor;
@@ -519,7 +597,7 @@ public static class Enchantment_Core
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref HitData.DamageTypes __result)
         {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is {} stats)
+            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
             {
                 float rawDmg = __result.GetTotalBlockableDamage();
                 __result.Modify(1 + stats.damage_percentage / 100f);
@@ -537,8 +615,8 @@ public static class Enchantment_Core
             }
         }
     }
-    
-    [HarmonyPatch(typeof(Player),nameof(Player.ApplyArmorDamageMods))]
+
+    [HarmonyPatch(typeof(Player), nameof(Player.ApplyArmorDamageMods))]
     [ClientOnlyPatch]
     private static class Player_ApplyArmorDamageMods_Patch
     {
@@ -547,7 +625,7 @@ public static class Enchantment_Core
         {
             foreach (var en in __instance.EquippedEnchantments())
             {
-                if (en.Stats is {} stats) mods.Apply(stats.GetResistancePairs());
+                if (en.Stats is { } stats) mods.Apply(stats.GetResistancePairs());
             }
         }
     }
@@ -589,8 +667,8 @@ public static class Enchantment_Core
         }
     }
 
-    [HarmonyPatch(typeof(Player),nameof(Player.GetEquipmentMovementModifier))]
-    [ClientOnlyPatch] 
+    [HarmonyPatch(typeof(Player), nameof(Player.GetEquipmentMovementModifier))]
+    [ClientOnlyPatch]
     private static class Player_UpdateMovementModifier_Patch
     {
         [UsedImplicitly]
@@ -598,7 +676,7 @@ public static class Enchantment_Core
         {
             foreach (var en in __instance.EquippedEnchantments())
             {
-                if (en.Stats is {} stats) __result += stats.movement_speed / 100f;
+                if (en.Stats is { } stats) __result += stats.movement_speed / 100f;
             }
         }
     }
@@ -630,13 +708,13 @@ public static class Enchantment_Core
     private static double ModifyAttackSpeed(Character c, double speed)
     {
         if (c != Player.m_localPlayer || !c.InAttack()) return speed;
-    
+
         ItemDrop.ItemData weapon = Player.m_localPlayer.GetCurrentWeapon();
         if (weapon == null) return speed;
-        
-        if (weapon.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { attack_speed: > 0} stats)
+
+        if (weapon.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { attack_speed: > 0 } stats)
             return speed * (1 + stats.attack_speed / 100f);
-        
+
         return speed;
     }
 

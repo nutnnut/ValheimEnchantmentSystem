@@ -261,14 +261,34 @@ public static class SyncedData
 
     private static Chance_Data GetEnchantmentChance(string dropPrefab, int level)
     {
-        if (level == 0) return new Chance_Data() { success = 100 };
+        Chance_Data chanceData = new Chance_Data() { success = 0, destroy = 0, reroll = 100 }; // Default values
+
+        if (level == 0)
+        {
+            chanceData.success = 100;
+            return chanceData;
+        }
+
         if (dropPrefab != null && OPTIMIZED_Overrides_EnchantmentChances.TryGetValue(dropPrefab, out Dictionary<int, Chance_Data> overriden))
         {
             if (overriden.TryGetValue(level, out Chance_Data overrideChance))
-                return overrideChance; 
+            {
+                chanceData.success = overrideChance.success;
+                chanceData.destroy = overrideChance.destroy;
+                chanceData.reroll = overrideChance.reroll != 0 ? overrideChance.reroll : 100;
+                return chanceData;
+            }
         }
 
-        return Synced_EnchantmentChances.Value.TryGetValue(level, out Chance_Data chance) ? chance : new Chance_Data() { success = 0 };
+        if (Synced_EnchantmentChances.Value.TryGetValue(level, out Chance_Data syncedChance))
+        {
+            chanceData.success = syncedChance.success;
+            chanceData.destroy = syncedChance.destroy;
+            chanceData.reroll = syncedChance.reroll != 0 ? syncedChance.reroll : 100;
+            return chanceData;
+        }
+
+        return chanceData;
     }
 
     public static Stat_Data GetStatIncrease(Enchantment_Core.Enchanted en)
@@ -284,12 +304,16 @@ public static class SyncedData
         return target.TryGetValue(en.level, out Stat_Data increase) ? increase : null;
     }
 
-    public static Stat_Data GetRandomizedStatIncrease(Enchantment_Core.Enchanted en)
+    public static Stat_Data_Float GetRandomizedMultiplier(Enchantment_Core.Enchanted en)
     {
         var allStats = GetStatIncrease(en);
-        if (allStats == null) return null;
-
+        if (allStats == null)
+        {
+            Debug.LogWarning("VES No possible stats found while randomizing, check your EnchantmentStats config yml");
+            return new Stat_Data_Float();
+        }
         var selectedStats = new Stat_Data();
+        var multipliers = new Stat_Data_Float();
         var fields = typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance)
                                    .Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float))
                                    .Where(f => Convert.ToDouble(f.GetValue(allStats)) != 0)
@@ -300,31 +324,40 @@ public static class SyncedData
         {
             lineCount++;
         }
+
         var randomFields = fields.OrderBy(f => UnityEngine.Random.value).Take(lineCount).ToList();
         foreach (var field in randomFields)
         {
             var originalValue = Convert.ToDouble(field.GetValue(allStats));
 
-            float interval = 0.1f;
-            float randomMultiplier = Mathf.Round(UnityEngine.Random.Range(0.5f / interval, 1.0f / interval)) * interval;
+            float interval = 0.25f;
+            float minMult = 0.5f;
+            float maxMult = 1.0f;
+            float bonusMultiplierChance = 0.1f;
+            float bonusMultiplier = 2.0f;
+            float randomMultiplier = Mathf.Round(UnityEngine.Random.Range(minMult / interval, maxMult / interval)) * interval;
 
-            if (UnityEngine.Random.value <= 0.10f) // 10% chance to get double bonus
+            // 30% 0.5
+            // 30% 0.75
+            // 30% 1.0
+            // 3.33% 1.0
+            // 3.33% 1.5
+            // 3.33% 2.0
+            if (UnityEngine.Random.value <= bonusMultiplierChance) // 10% chance to get double bonus
             {
-                randomMultiplier *= 2.0f;
+                randomMultiplier *= bonusMultiplier;
             }
 
-            var randomizedValue = originalValue * randomMultiplier;
-            if (field.FieldType == typeof(int))
+            var multiplierField = typeof(Stat_Data_Float).GetField(field.Name);
+            if (multiplierField == null)
             {
-                field.SetValue(selectedStats, (int)Math.Round(randomizedValue, MidpointRounding.AwayFromZero));
+                Debug.LogError("VES multiplierField not found, skipping: " + field.Name);
+                continue;
             }
-            else if (field.FieldType == typeof(float))
-            {
-                field.SetValue(selectedStats, (float)randomizedValue);
-            }
+            multiplierField.SetValue(multipliers, randomMultiplier);
         }
 
-        return selectedStats;
+        return multipliers;
     }
 
     public static EnchantmentReqs GetReqs(string prefab)
@@ -539,13 +572,87 @@ public static class SyncedData
         {
             return JsonUtility.FromJson<Stat_Data>(json);
         }
+
+        public Stat_Data ApplyMultiplier(Stat_Data_Float multipliers)
+        {
+            var multipliedStats = new Stat_Data();
+            foreach (var field in typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance))
+            {
+                var baseValue = Convert.ToDouble(field.GetValue(this));
+                var multiplierField = typeof(Stat_Data_Float).GetField(field.Name);
+                if (multiplierField != null)
+                {
+                    var multiplier = (float)multiplierField.GetValue(multipliers);
+                    var newValue = baseValue * multiplier;
+                    if (field.FieldType == typeof(int))
+                    {
+                        field.SetValue(multipliedStats, (int)Math.Round(newValue, MidpointRounding.AwayFromZero));
+                    }
+                    else if (field.FieldType == typeof(float))
+                    {
+                        field.SetValue(multipliedStats, (float)newValue);
+                    }
+                }
+            }
+            return multipliedStats;
+        }
     }
-    
+
+    public class Stat_Data_Float
+    {
+        public float durability = 0.0f;
+        public float durability_percentage = 0.0f;
+        public float armor_percentage = 0.0f;
+        public float armor = 0.0f;
+        public float damage_percentage = 0.0f;
+        public float damage_true = 0.0f;
+        public float damage_blunt = 0.0f;
+        public float damage_slash = 0.0f;
+        public float damage_pierce = 0.0f;
+        public float damage_chop = 0.0f;
+        public float damage_pickaxe = 0.0f;
+        public float damage_fire = 0.0f;
+        public float damage_frost = 0.0f;
+        public float damage_lightning = 0.0f;
+        public float damage_poison = 0.0f;
+        public float damage_spirit = 0.0f;
+        public float damage_true_percentage = 0.0f;
+        public float damage_blunt_percentage = 0.0f;
+        public float damage_slash_percentage = 0.0f;
+        public float damage_pierce_percentage = 0.0f;
+        public float damage_chop_percentage = 0.0f;
+        public float damage_pickaxe_percentage = 0.0f;
+        public float damage_fire_percentage = 0.0f;
+        public float damage_frost_percentage = 0.0f;
+        public float damage_lightning_percentage = 0.0f;
+        public float damage_poison_percentage = 0.0f;
+        public float damage_spirit_percentage = 0.0f;
+        public float attack_speed = 0.0f;
+        public float movement_speed = 0.0f;
+        public float max_hp = 0.0f;
+        public float max_stamina = 0.0f;
+        public float hp_regen = 0.0f;
+        public float stamina_regen = 0.0f;
+        public float API_backpacks_additionalrow_x = 0.0f;
+        public float API_backpacks_additionalrow_y = 0.0f;
+
+        public string SerializeJson()
+        {
+            return JsonUtility.ToJson(this);
+        }
+
+        public static Stat_Data_Float DeserializeJson(string json)
+        {
+            return JsonUtility.FromJson<Stat_Data_Float>(json);
+        }
+    }
+
     [AutoSerialize]
     public class Chance_Data : ImplicitBool, ISerializableParameter
     {
         [SerializeField] public int success;
         [SerializeField] public int destroy;
+        [SerializeField] public int reroll;
         public void Serialize  (ref ZPackage pkg) => throw new NotImplementedException();
         public void Deserialize(ref ZPackage pkg) => throw new NotImplementedException();
     }
