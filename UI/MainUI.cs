@@ -493,7 +493,7 @@ public static class VES_UI
         {
             string c = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
             Color cColor = c.ToColorAlpha();
-            itemName += $" (<color={c.IncreaseColorLight()}>+{en.level}</color>)";
+            itemName += $" (<color={c.IncreaseColorLight()}>+{en.level}{Enchantment_Core.GenerateAsteriskSuffix(en)}</color>)";
             Item_Trail.color = cColor;
             UpdateChanceText();
         }
@@ -539,7 +539,6 @@ public static class VES_UI
 
     private static void UpdateChanceText()
     {
-        Debug.LogWarning("Reloading Chance!");
         Enchantment_Core.Enchanted en = _currentItem.Data().Get<Enchantment_Core.Enchanted>();
         if (_reroll)
         {
@@ -553,7 +552,6 @@ public static class VES_UI
             if (chance > 100) chance = 100;
             Chance_Text.text = $"{chance}%";
         }
-        Debug.LogWarning(Chance_Text.text);
     }
 
     private static void Show()

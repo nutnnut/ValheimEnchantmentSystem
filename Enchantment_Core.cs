@@ -54,7 +54,13 @@ public static class Enchantment_Core
                     Debug.Log("VES Floats Not Found");
                     RandomizeAndSaveFloats();
                 }
-                cachedMultipliedStats = SyncedData.GetStatIncrease(this).ApplyMultiplier(randomizedFloat);
+                var baseStats = SyncedData.GetStatIncrease(this);
+                if (baseStats == null)
+                {
+                    Debug.LogError("Failed to get base stats, check config");
+                    return null;
+                }
+                cachedMultipliedStats = baseStats.ApplyMultiplier(randomizedFloat);
                 return cachedMultipliedStats;
             }
         }
@@ -165,7 +171,7 @@ public static class Enchantment_Core
             {
                 string oldSuffix = GenerateAsteriskSuffix(this);
                 EnchantReroll();
-                msg = "$enchantment_success_reroll".Localize(Item.m_shared.m_name.Localize() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
+                msg = "$enchantment_success_reroll".Localize(Item.m_shared.m_name.Localize(), level.ToString(), oldSuffix, GenerateAsteriskSuffix(this));
                 return true;
             }
 
@@ -352,7 +358,7 @@ public static class Enchantment_Core
         return suffix;
     }
 
-    private static string GenerateAsteriskSuffix(Enchanted en)
+    public static string GenerateAsteriskSuffix(Enchanted en)
     {
         if (en.randomizedFloat == null) return "";
         float sumOfFloats = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
@@ -367,15 +373,15 @@ public static class Enchantment_Core
         {
             asteriskColor = "#FF0000"; // Red
         }
-        else if (numberOfAsterisks >= 8)
+        else if (numberOfAsterisks >= 7)
         {
             asteriskColor = "#FFA500"; // Orange
         }
-        else if (numberOfAsterisks >= 6)
+        else if (numberOfAsterisks >= 5)
         {
             asteriskColor = "#CC00CC"; // Purple
         }
-        else if (numberOfAsterisks >= 4)
+        else if (numberOfAsterisks >= 3)
         {
             asteriskColor = "#4444FF"; // Blue
         }
@@ -686,17 +692,21 @@ public static class Enchantment_Core
     [ClientOnlyPatch]
     public class ApplySkillToDurability
     {
+        private static readonly object lockObject = new object();
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
             try
             {
-                var data = __instance.Data().Get<Enchanted>();
-                if (data?.level > 0 && data.Stats != null)
+                lock (lockObject)
                 {
-                    var stats = data.Stats;
-                    __result *= 1 + stats.durability_percentage / 100f;
-                    __result += stats.durability;
+                    var data = __instance.Data().Get<Enchanted>();
+                    if (data?.level > 0 && data.Stats != null)
+                    {
+                        var stats = data.Stats;
+                        __result *= 1 + stats.durability_percentage / 100f;
+                        __result += stats.durability;
+                    }
                 }
             }
             catch (Exception ex)
