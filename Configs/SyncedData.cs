@@ -486,7 +486,7 @@ public static class SyncedData
             if (damage_spirit_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>+{damage_spirit_percentage}%</color>");
             if (weapon_skill > 0) builder.Append($"\n<color={color}>•</color> !!WEAPON SKILL: <color=#808080>+{weapon_skill}</color>");
             if (armor > 0) builder.Append($"\n<color={color}>•</color> $item_armor: <color=#808080>+{armor}</color>");
-            if (armor_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_bonusespercentarmor: <color=#808080>+{armor_percentage}</color>");
+            if (armor_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_bonusespercentarmor: <color=#808080>+{armor_percentage}%</color>");
             if (durability > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability}</color>");
             if (durability_percentage > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability_percentage}%</color>");
             if (max_hp > 0) builder.Append($"\n<color={color}>•</color> $se_health: <color=#DD3333>+{max_hp}</color>");
