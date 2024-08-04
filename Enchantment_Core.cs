@@ -700,22 +700,28 @@ public static class Enchantment_Core
     [ClientOnlyPatch]
     public class ApplySkillToDurability
     {
-        private static readonly object lockObject = new object();
+        //private static readonly object lockObject = new object();
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
             try
             {
-                lock (lockObject)
+                //lock (lockObject)
+                //{
+                ItemInfo data = __instance.Data();
+                if (data == null)
                 {
-                    var data = __instance.Data().Get<Enchanted>();
-                    if (data?.level > 0 && data.Stats != null)
-                    {
-                        var stats = data.Stats;
-                        __result *= 1 + stats.durability_percentage / 100f;
-                        __result += stats.durability;
-                    }
+                    Debug.LogWarning(__instance.m_shared.m_name + " does not have data");
+                    return;
                 }
+                var en = data.Get<Enchanted>();
+                if (en?.level > 0 && en.Stats != null)
+                {
+                    var stats = en.Stats;
+                    __result *= 1 + stats.durability_percentage / 100f;
+                    __result += stats.durability;
+                }
+                //}
             }
             catch (Exception ex)
             {
