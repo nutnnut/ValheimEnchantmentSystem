@@ -510,7 +510,7 @@ public static class VES_UI
         UseBless_Transform.gameObject.SetActive(true);
         UseBless_Icon.gameObject.SetActive(false);
 
-        Reroll_Transform.gameObject.SetActive(en.level > 0);
+        Reroll_Transform.gameObject.SetActive(en?.level > 0);
         Reroll_Icon.gameObject.SetActive(false);
 
         RectTransform Scroll_Rect = Scroll_Transform.GetComponent<RectTransform>();
