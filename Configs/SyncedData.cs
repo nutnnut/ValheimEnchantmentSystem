@@ -5,6 +5,7 @@ using ServerSync;
 using AutoISP;
 using static PrivilegeManager;
 using UnityEngine;
+using ItemManager;
 
 namespace kg.ValheimEnchantmentSystem.Configs;
 
@@ -478,8 +479,9 @@ public static class SyncedData
             if (damage_poison_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_poison: <color=#00FF00>+{damage_poison_percentage}%</color>");
             if (damage_spirit > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>+{damage_spirit}</color>");
             if (damage_spirit_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>+{damage_spirit_percentage}%</color>");
-            // if (armor > 0) builder.Append($"\n<color={color}>•</color> $item_armor: <color=#808080>+{armor}</color>");
-            // if (durability > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability}</color>");
+            if (weapon_skill > 0) builder.Append($"\n<color={color}>•</color> !!WEAPON SKILL: <color=#808080>+{weapon_skill}</color>");
+            if (armor > 0) builder.Append($"\n<color={color}>•</color> $item_armor: <color=#808080>+{armor}</color>");
+            if (durability > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability}</color>");
             if (max_hp > 0) builder.Append($"\n<color={color}>•</color> $se_health: <color=#DD3333>+{max_hp}</color>");
             if (hp_regen > 0) builder.Append($"\n<color={color}>•</color> $se_healthregen: <color=#DD3333>+{hp_regen}/10s</color>");
             if (max_stamina > 0) builder.Append($"\n<color={color}>•</color> $se_stamina: <color=#EEEE11>+{max_stamina}</color>");
@@ -554,6 +556,8 @@ public static class SyncedData
         [SerializeField] public int movement_speed;
         [SerializeField] public int max_hp;
         [SerializeField] public int max_stamina;
+        [SerializeField] public int weapon_skill;
+        [SerializeField] public int movement_skill;
         [SerializeField] public float hp_regen;
         [SerializeField] public float stamina_regen;
         //api stats
@@ -631,6 +635,8 @@ public static class SyncedData
         public float movement_speed = 0.0f;
         public float max_hp = 0.0f;
         public float max_stamina = 0.0f;
+        public float weapon_skill = 0.0f;
+        public float movement_skill = 0.0f;
         public float hp_regen = 0.0f;
         public float stamina_regen = 0.0f;
         public float API_backpacks_additionalrow_x = 0.0f;

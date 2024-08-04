@@ -7,6 +7,7 @@ using kg.ValheimEnchantmentSystem.Configs;
 using kg.ValheimEnchantmentSystem.Misc;
 using kg.ValheimEnchantmentSystem.UI;
 using static kg.ValheimEnchantmentSystem.Configs.SyncedData;
+using static Skills;
 using Random = UnityEngine.Random;
 
 namespace kg.ValheimEnchantmentSystem;
@@ -732,6 +733,65 @@ public static class Enchantment_Core
             return speed * (1 + stats.attack_speed / 100f);
 
         return speed;
+    }
+
+    [HarmonyPatch(typeof(Player), nameof(Player.GetSkillFactor))]
+    public class QuickDrawBowSkillIncrease_Player_GetSkillFactor_Patch
+    {
+        [UsedImplicitly]
+        private static void Postfix(Player __instance, Skills.SkillType skill, ref float __result)
+        {
+            if (skill == Skills.SkillType.Bows)
+            {
+                float totalAttackSpeedBonus = 0;
+                foreach (var en in __instance.EquippedEnchantments())
+                {
+                    if (en.Stats is { } stats) totalAttackSpeedBonus += stats.attack_speed / 100f;
+                }
+                float drawTimeMultiplier = 1.0f / (1.0f + totalAttackSpeedBonus);
+
+                float originalDrawTime = (1.0f - __result) * 0.8f + 0.2f;
+                // drawTimeMultiplier * originalDrawTime = (1.0f - adjustedSkillFactor) * 0.8f + 0.2f
+                // Solve
+                float adjustedSkillFactor = 1.0f - (drawTimeMultiplier * originalDrawTime - 0.2f) / 0.8f;
+
+                __result = adjustedSkillFactor; // may exceed 100 but got clamped by the game anyway
+            }
+        }
+    }
+
+    [HarmonyPatch(typeof(Skills), nameof(Skills.GetSkillFactor))]
+    public static class AddSkillLevel_Skills_GetSkillFactor_Patch
+    {
+        [UsedImplicitly]
+        private static void Postfix(Skills __instance, SkillType skillType, ref float __result)
+        {
+            __result += SkillIncrease(__instance.m_player, skillType) / 100f;
+        }
+
+        public static int SkillIncrease(Player player, SkillType skillType)
+        {
+            int increase = 0;
+
+            int getSkillIncrease(SkillType[] types)
+            {
+                int result = 0;
+                if (types.Contains(skillType))
+                {
+                    foreach (var en in player.EquippedEnchantments())
+                    {
+                        if (en.Stats is { } stats) result += stats.weapon_skill;
+                    }
+                    // Debug.LogWarning(skillType + ": +" + result);
+                }
+                return result;
+            }
+
+            increase += getSkillIncrease(new[] { player.GetCurrentWeapon().m_shared.m_skillType });
+            // increase += check(new[] { SkillType.Run, SkillType.Jump, SkillType.Swim, SkillType.Sneak });
+
+            return increase;
+        }
     }
 
     [HarmonyPatch(typeof(Player), nameof(Player.FixedUpdate))]
