@@ -373,7 +373,7 @@ public static class Enchantment_Core
                     .Where(f => f.FieldType == typeof(float))
                     .Sum(f => (float)f.GetValue(en.randomizedFloat));
 
-        int numberOfAsterisks = (int)Math.Round(Math.Max(sumOfFloats - 1, 0), MidpointRounding.AwayFromZero);
+        int numberOfAsterisks = (int)Math.Round(Math.Max(sumOfFloats, 0), MidpointRounding.AwayFromZero);
         string asterisks = new string('*', numberOfAsterisks);
 
         string asteriskColor;
@@ -381,15 +381,15 @@ public static class Enchantment_Core
         {
             asteriskColor = "#FF0000"; // Red
         }
-        else if (numberOfAsterisks >= 7)
+        else if (numberOfAsterisks >= 8)
         {
             asteriskColor = "#FFA500"; // Orange
         }
-        else if (numberOfAsterisks >= 5)
+        else if (numberOfAsterisks >= 6)
         {
             asteriskColor = "#CC00CC"; // Purple
         }
-        else if (numberOfAsterisks >= 3)
+        else if (numberOfAsterisks >= 4)
         {
             asteriskColor = "#4444FF"; // Blue
         }
@@ -452,14 +452,14 @@ public static class Enchantment_Core
                             $"$1 (<color={color}>+{(damage.m_poison * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_poison * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
                         __result = new Regex("(\\$inventory_spirit.*)").Replace(__result,
                             $"$1 (<color={color}>+{(damage.m_spirit * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_spirit * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result += $"\n<color={color}>•</color> $enchantment_bonusespercentdamage (<color={color}>+{damagePercent}%</color>)";
+                        __result += $"\n<color={color}>•</color> $enchantment_bonusespercentdamage: <color={color}>+{damagePercent}%</color>";
                     }
                     int armorPercent = stats.armor_percentage;
                     if (armorPercent > 0)
                     {
                         __result = new Regex("(\\$item_blockarmor.*)").Replace(__result, $"$1 (<color={color}>+{(item.GetBaseBlockPower(qualityLevel) * armorPercent / 100f).RoundOne()}({armorPercent}%)</color>)");
                         __result = new Regex("(\\$item_armor.*)").Replace(__result, $"$1 (<color={color}>+{(item.GetArmor(qualityLevel, item.m_worldLevel) * armorPercent / 100f).RoundOne()}({armorPercent}%)</color>)");
-                        __result += $"\n<color={color}>•</color> $enchantment_bonusespercentarmor (<color={color}>+{armorPercent}%</color>)";
+                        //__result += $"\n<color={color}>•</color> $enchantment_bonusespercentarmor: <color={color}>+{armorPercent}%</color>";
                     }
                     int armor = stats.armor;
                     if (armor > 0)
@@ -706,22 +706,13 @@ public static class Enchantment_Core
         {
             try
             {
-                //lock (lockObject)
-                //{
-                ItemInfo data = __instance.Data();
-                if (data == null)
-                {
-                    Debug.LogWarning(__instance.m_shared.m_name + " does not have data");
-                    return;
-                }
-                var en = data.Get<Enchanted>();
-                if (en?.level > 0 && en.Stats != null)
+                if (__instance?.Data().Get<Enchanted>() is not { level: > 0 } en) return;
+                if (en.Stats != null)
                 {
                     var stats = en.Stats;
                     __result *= 1 + stats.durability_percentage / 100f;
                     __result += stats.durability;
                 }
-                //}
             }
             catch (Exception ex)
             {
