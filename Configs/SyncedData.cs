@@ -307,12 +307,18 @@ public static class SyncedData
 
     public static Stat_Data_Float GetRandomizedMultiplier(Enchantment_Core.Enchanted en)
     {
+        if (en?.level <= 0)
+        {
+            Debug.LogWarning("VES No floats because item null or lv0");
+            return new Stat_Data_Float();
+        }
         var allStats = GetStatIncrease(en);
         if (allStats == null)
         {
             Debug.LogWarning("VES No possible stats found while randomizing, check your EnchantmentStats config yml");
             return new Stat_Data_Float();
         }
+        Debug.LogWarning("VES loading possible fields...");
         var selectedStats = new Stat_Data();
         var multipliers = new Stat_Data_Float();
         var fields = typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance)
@@ -326,11 +332,21 @@ public static class SyncedData
             lineCount++;
         }
 
+        Debug.LogWarning("VES trying to pity...");
         // Apply pity system
-        int oldLineCount = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
-                                             .Count(f => Convert.ToSingle(f.GetValue(en.randomizedFloat)) != 0);
+        int oldLineCount = 0;
+        try
+        {
+            oldLineCount = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
+                                                 .Count(f => Convert.ToSingle(f.GetValue(en.randomizedFloat)) != 0);
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"Error counting fields with non-zero values in Stat_Data_Float: {ex}");
+        }
         lineCount = Math.Max(lineCount, oldLineCount - 1);
 
+        Debug.LogWarning("VES randomizing fields...");
         var randomFields = fields.OrderBy(f => UnityEngine.Random.value).Take(lineCount).ToList();
         foreach (var field in randomFields)
         {

@@ -49,13 +49,14 @@ public static class Enchantment_Core
         {
             get
             {
+                if (level == 0) return null;
                 if (cachedMultipliedStats != null)
                 {
                     return cachedMultipliedStats;
                 }
                 if (randomizedFloat == null)
                 {
-                    Debug.Log("VES Floats Not Found");
+                    Debug.LogWarning("VES Item Floats Not Found");
                     RandomizeAndSaveFloats();
                 }
                 var baseStats = SyncedData.GetStatIncrease(this);
@@ -73,6 +74,11 @@ public static class Enchantment_Core
         {
             cachedMultipliedStats = null;
             randomizedFloat = SyncedData.GetRandomizedMultiplier(this);
+            if (randomizedFloat == null)
+            {
+                Debug.LogWarning("VES Failed to randomize, giving 0 empty floats");
+                randomizedFloat = new Stat_Data_Float();
+            }
             Save();
         }
 
@@ -700,14 +706,13 @@ public static class Enchantment_Core
     [ClientOnlyPatch]
     public class ApplySkillToDurability
     {
-        //private static readonly object lockObject = new object();
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
             try
             {
                 if (__instance?.Data().Get<Enchanted>() is not { level: > 0 } en) return;
-                if (en.Stats != null)
+                if (en.level > 0 && en.Stats != null)
                 {
                     var stats = en.Stats;
                     __result *= 1 + stats.durability_percentage / 100f;
