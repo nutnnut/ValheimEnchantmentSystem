@@ -344,7 +344,7 @@ public static class SyncedData
             oldLineCount = 0;
             if (en.level > 1)
             {
-                Debug.LogWarning($"Error getting previous enchantment for pity system: {ex}");
+                Debug.LogWarning($"Error counting fields with non-zero values in Stat_Data_Float: {ex}");
             }
         }
         lineCount = Mathf.Clamp(lineCount, oldLineCount - 1, fields.Count);
