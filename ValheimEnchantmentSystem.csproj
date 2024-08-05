@@ -40,6 +40,7 @@
     <Compile Include="Configs\BepInEx_ConfigurationManager.cs" />
     <Compile Include="Configs\Defaults.cs" />
     <Compile Include="Configs\SyncedData.cs" />
+    <Compile Include="EnchantmentEffects\ModifyReloadSpeed.cs" />
     <Compile Include="EnchantmentEffects\ModifyEtir.cs" />
     <Compile Include="Enchantment_Core.cs" />
     <Compile Include="Enchantment_Skill.cs" />
