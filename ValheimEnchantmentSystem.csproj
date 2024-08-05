@@ -40,10 +40,12 @@
     <Compile Include="Configs\BepInEx_ConfigurationManager.cs" />
     <Compile Include="Configs\Defaults.cs" />
     <Compile Include="Configs\SyncedData.cs" />
+    <Compile Include="EnchantmentEffects\ModifyEtir.cs" />
     <Compile Include="Enchantment_Core.cs" />
     <Compile Include="Enchantment_Skill.cs" />
     <Compile Include="Enchantment_VFX.cs" />
     <Compile Include="GlobalUsings.cs" />
+    <Compile Include="EnchantmentEffects\ModifyStaminaUsage.cs" />
     <Compile Include="Items_Structures\ScrollItems.cs" />
     <Compile Include="Items_Structures\BuildPieces.cs" />
     <Compile Include="Managers\AnimationSpeedManager.cs" />
@@ -53,7 +55,9 @@
     <Compile Include="Misc\DiscordWebhook.cs" />
     <Compile Include="Misc\External_AsmLoad.cs" />
     <Compile Include="Other_Mods_APIs.cs" />
+    <Compile Include="EnchantmentEffects\PlayerExtension.cs" />
     <Compile Include="StatsPanel.cs" />
+    <Compile Include="EnchantmentEffects\TooltipPatch.cs" />
     <Compile Include="UI\InfoUI.cs" />
     <Compile Include="UI\MainUI.cs" />
     <Compile Include="UI\NotificationsUI.cs" />

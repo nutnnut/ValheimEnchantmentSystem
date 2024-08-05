@@ -1,5 +1,4 @@
 ﻿using System.Reflection.Emit;
-using System.Text.RegularExpressions;
 using ItemDataManager;
 using ItemManager;
 using JetBrains.Annotations;
@@ -12,6 +11,7 @@ using Random = UnityEngine.Random;
 using Object = UnityEngine.Object;
 using TMPro;
 using static Unity.IO.LowLevel.Unsafe.AsyncReadManagerMetrics;
+using System.Reflection;
 
 namespace kg.ValheimEnchantmentSystem;
 
@@ -183,9 +183,9 @@ public static class Enchantment_Core
 
             if (Random.Range(0f, 100f) <= 80f) // TODO: config chance
             {
-                string oldSuffix = GenerateAsteriskSuffix(this);
+                string oldSuffix = GenerateAsteriskSuffix();
                 EnchantReroll();
-                msg = "$enchantment_success_reroll".Localize(Item.m_shared.m_name.Localize(), level.ToString(), oldSuffix, GenerateAsteriskSuffix(this));
+                msg = "$enchantment_success_reroll".Localize(Item.m_shared.m_name.Localize(), level.ToString(), oldSuffix, GenerateAsteriskSuffix());
                 return true;
             }
 
@@ -213,9 +213,9 @@ public static class Enchantment_Core
             int prevLevel = level;
             if (CheckRandom(out bool destroy))
             {
-                string oldSuffix = GenerateAsteriskSuffix(this);
+                string oldSuffix = GenerateAsteriskSuffix();
                 EnchantLevelUp();
-                msg = "$enchantment_success".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
+                msg = "$enchantment_success".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix());
                 if (SyncedData.EnchantmentEnableNotifications.Value && SyncedData.EnchantmentNotificationMinLevel.Value <= level)
                     Notifications_UI.AddNotification(Player.m_localPlayer.GetPlayerName(), Item.m_dropPrefab.name, (int)Notifications_UI.NotificationItemResult.Success, prevLevel, level);
                 return true;
@@ -229,7 +229,7 @@ public static class Enchantment_Core
         private string HandleFailedEnchant(bool safeEnchant, int prevLevel, bool destroy)
         {
             string msg;
-            string oldSuffix = GenerateAsteriskSuffix(this);
+            string oldSuffix = GenerateAsteriskSuffix();
             if (SyncedData.SafetyLevel.Value <= level && !safeEnchant)
             {
                 Notifications_UI.NotificationItemResult notification;
@@ -238,7 +238,7 @@ public static class Enchantment_Core
                     case SyncedData.ItemDesctructionTypeEnum.LevelDecrease:
                     default:
                         EnchantLevelDown();
-                        msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
+                        msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix());
                         notification = Notifications_UI.NotificationItemResult.LevelDecrease;
                         break;
                     case SyncedData.ItemDesctructionTypeEnum.Destroy:
@@ -258,7 +258,7 @@ public static class Enchantment_Core
                         else
                         {
                             EnchantLevelDown();
-                            msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
+                            msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix());
                         }
                         break;
                     case SyncedData.ItemDesctructionTypeEnum.CombinedEasy:
@@ -266,7 +266,7 @@ public static class Enchantment_Core
                         if (destroy)
                         {
                             EnchantLevelDown();
-                            msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix(this));
+                            msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix());
                         }
                         else
                         {
@@ -308,264 +308,63 @@ public static class Enchantment_Core
         }
 
         public static implicit operator bool(Enchanted en) => en != null;
-    }
 
-    [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.CreateItemTooltip))]
-    [ClientOnlyPatch]
-    private static class InventoryGrid_CreateItemTooltip_Patch
-    {
-        [UsedImplicitly]
-        private static void Prefix(InventoryGrid __instance, ItemDrop.ItemData item, out string __state)
+        public string GenerateNameSuffix()
         {
-            __state = null;
-            if (item?.Data().Get<Enchanted>() is not { level: > 0 } en) return;
-            __state = item.m_shared.m_name;
+            string suffix = "";
+            string color = SyncedData.GetColor(this, out _, true)
+                .IncreaseColorLight();
 
-            string suffix = GenerateNameSuffix(en);
-            item.m_shared.m_name += suffix;
-        }
-
-        [UsedImplicitly]
-        private static void Postfix(InventoryGrid __instance, ItemDrop.ItemData item, string __state)
-        {
-            if (__state != null) item.m_shared.m_name = __state;
-        }
-    }
-
-    [HarmonyPatch(typeof(ItemDrop), nameof(ItemDrop.GetHoverText))]
-    [ClientOnlyPatch]
-    private static class ItemDrop_GetHoverText_Patch
-    {
-        [UsedImplicitly]
-        private static void Prefix(ItemDrop __instance, out string __state)
-        {
-            __state = null;
-            if (__instance.m_itemData?.Data().Get<Enchanted>() is not { level: > 0 } en) return;
-            __state = __instance.m_itemData.m_shared.m_name;
-
-            string suffix = GenerateNameSuffix(en);
-            __instance.m_itemData.m_shared.m_name += suffix;
-        }
-
-        [UsedImplicitly]
-        private static void Postfix(ItemDrop __instance, string __state)
-        {
-            if (__state != null) __instance.m_itemData.m_shared.m_name = __state;
-        }
-    }
-
-    private static string GenerateNameSuffix(Enchanted en)
-    {
-        string suffix = "";
-        string color = SyncedData.GetColor(en, out _, true)
-            .IncreaseColorLight();
-
-        if (en.randomizedFloat == null)
-        {
-            Debug.LogError("VES Failed to get float for suffix");
-            return $" (<color={color}>+{en.level}</color>)";
-        }
-
-        string asteriskText = GenerateAsteriskSuffix(en);
-        suffix += $" (<color={color}>+{en.level}</color>{asteriskText})";
-
-        return suffix;
-    }
-
-    public static string GenerateAsteriskSuffix(Enchanted en)
-    {
-        if (en.randomizedFloat == null) return "";
-        float sumOfFloats = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
-                    .Where(f => f.FieldType == typeof(float))
-                    .Sum(f => (float)f.GetValue(en.randomizedFloat));
-
-        int numberOfAsterisks = (int)Math.Round(Math.Max(sumOfFloats, 0), MidpointRounding.AwayFromZero);
-        string asterisks = new string('*', numberOfAsterisks);
-
-        string asteriskColor;
-        if (numberOfAsterisks >= 10)
-        {
-            asteriskColor = "#FF0000"; // Red
-        }
-        else if (numberOfAsterisks >= 8)
-        {
-            asteriskColor = "#FFA500"; // Orange
-        }
-        else if (numberOfAsterisks >= 6)
-        {
-            asteriskColor = "#CC00CC"; // Purple
-        }
-        else if (numberOfAsterisks >= 4)
-        {
-            asteriskColor = "#4444FF"; // Blue
-        }
-        else if (numberOfAsterisks >= 2)
-        {
-            asteriskColor = "#00FF00"; // Green
-        }
-        else
-        {
-            asteriskColor = "#777777"; // Grey
-        }
-
-        string asteriskText = $"<color={asteriskColor}>{asterisks}</color>";
-        return asteriskText;
-    }
-
-    [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData),
-        typeof(int), typeof(bool), typeof(float))]
-    [ClientOnlyPatch]
-    public class TooltipPatch
-    {
-        [UsedImplicitly]
-        public static void Postfix(ItemDrop.ItemData item, bool crafting, int qualityLevel, ref string __result)
-        {
-            bool blockShowEnchant = false;
-            if (item.Data().Get<Enchanted>() is { level: > 0 } en)
+            if (randomizedFloat == null)
             {
-                SyncedData.Stat_Data stats = en.Stats;
-                string color = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
-
-                if (stats)
-                {
-                    int damagePercent = stats.damage_percentage;
-                    if (stats.durability > 0)
-                        __result = new Regex("(\\$item_durability.*)").Replace(__result, $"$1 (<color={color}>+{stats.durability}</color>)");
-                    if (stats.durability_percentage > 0)
-                        __result = new Regex("(\\$item_durability.*)").Replace(__result, $"$1 (<color={color}>+{stats.durability_percentage}%</color>)");
-
-                    __result += "\n";
-
-                    if (damagePercent > 0)
-                    {
-                        Player.m_localPlayer.GetSkills().GetRandomSkillRange(out float minFactor, out float maxFactor, item.m_shared.m_skillType);
-                        HitData.DamageTypes damage = item.GetDamage(qualityLevel, item.m_worldLevel);
-                        __result = new Regex("(\\$inventory_damage.*)").Replace(__result,
-                            $"$1 (<color={color}>+{(damage.m_damage * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_damage * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result = new Regex("(\\$inventory_blunt.*)").Replace(__result,
-                            $"$1 (<color={color}>+{(damage.m_blunt * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_blunt * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result = new Regex("(\\$inventory_slash.*)").Replace(__result,
-                            $"$1 (<color={color}>+{(damage.m_slash * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_slash * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result = new Regex("(\\$inventory_pierce.*)").Replace(__result,
-                            $"$1 (<color={color}>+{(damage.m_pierce * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_pierce * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result = new Regex("(\\$inventory_fire.*)").Replace(__result,
-                            $"$1 (<color={color}>+{(damage.m_fire * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_fire * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result = new Regex("(\\$inventory_frost.*)").Replace(__result,
-                            $"$1 (<color={color}>+{(damage.m_frost * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_frost * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result = new Regex("(\\$inventory_lightning.*)").Replace(__result,
-                            $"$1 (<color={color}>+{(damage.m_lightning * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_lightning * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result = new Regex("(\\$inventory_poison.*)").Replace(__result,
-                            $"$1 (<color={color}>+{(damage.m_poison * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_poison * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result = new Regex("(\\$inventory_spirit.*)").Replace(__result,
-                            $"$1 (<color={color}>+{(damage.m_spirit * damagePercent / 100f * minFactor).RoundOne()} - {(damage.m_spirit * damagePercent / 100f * maxFactor).RoundOne()}</color>)");
-                        __result += $"\n<color={color}>•</color> $enchantment_bonusespercentdamage: <color={color}>+{damagePercent}%</color>";
-                    }
-                    int armorPercent = stats.armor_percentage;
-                    if (armorPercent > 0)
-                    {
-                        __result = new Regex("(\\$item_blockarmor.*)").Replace(__result, $"$1 (<color={color}>+{(item.GetBaseBlockPower(qualityLevel) * armorPercent / 100f).RoundOne()}({armorPercent}%)</color>)");
-                        __result = new Regex("(\\$item_armor.*)").Replace(__result, $"$1 (<color={color}>+{(item.GetArmor(qualityLevel, item.m_worldLevel) * armorPercent / 100f).RoundOne()}({armorPercent}%)</color>)");
-                        //__result += $"\n<color={color}>•</color> $enchantment_bonusespercentarmor: <color={color}>+{armorPercent}%</color>";
-                    }
-                    int armor = stats.armor;
-                    if (armor > 0)
-                    {
-                        __result = new Regex("(\\$item_blockarmor.*)").Replace(__result, $"$1 (<color={color}>+{stats.armor}</color>)");
-                        __result = new Regex("(\\$item_armor.*)").Replace(__result, $"$1 (<color={color}>+{stats.armor}</color>)");
-                    }
-
-                    __result += stats.BuildAdditionalStats(color);
-                }
-
-                int chance = en.GetEnchantmentChance();
-                if (chance > 0)
-                {
-                    __result += $"\n<color={color}>•</color> $enchantment_chance (<color={color}>{chance}%</color>)";
-                    float additionalChance = SyncedData.GetAdditionalEnchantmentChance();
-                    if (additionalChance > 0)
-                    {
-                        __result += $" (<color={color}>+{additionalChance.RoundOne()}%</color> $enchantment_additionalchance)";
-                    }
-                }
-                if (chance <= 0)
-                {
-                    blockShowEnchant = true;
-                    __result += $"\n<color={color}>•</color> $enchantment_maxedout".Localize();
-                }
+                Debug.LogError("VES Failed to get float for suffix");
+                return $" (<color={color}>+{level}</color>)";
             }
 
+            string asteriskText = GenerateAsteriskSuffix();
+            suffix += $" (<color={color}>+{level}</color>{asteriskText})";
 
-            if (blockShowEnchant) return;
-            string dropName = item.m_dropPrefab
-                ? item.m_dropPrefab.name
-                : Utils.GetPrefabNameByItemName(item.m_shared.m_name);
-            if (SyncedData.GetReqs(dropName) is { } reqs)
+            return suffix;
+        }
+
+        public string GenerateAsteriskSuffix()
+        {
+            if (randomizedFloat == null) return "";
+            float sumOfFloats = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
+                        .Where(f => f.FieldType == typeof(float))
+                        .Sum(f => (float)f.GetValue(randomizedFloat));
+
+            int numberOfAsterisks = (int)Math.Round(Math.Max(sumOfFloats, 0), MidpointRounding.AwayFromZero);
+            string asterisks = new string('*', numberOfAsterisks);
+
+            string asteriskColor;
+            if (numberOfAsterisks >= 10)
             {
-                string canBe = $"\n• $enchantment_canbeenchantedwith:";
-                if (reqs.enchant_prefab.IsValid())
-                {
-                    string mainName = ZNetScene.instance.GetPrefab(reqs.enchant_prefab.prefab).GetComponent<ItemDrop>()
-                        .m_itemData.m_shared.m_name;
-                    int val1 = reqs.enchant_prefab.amount;
-                    canBe += $"\n<color=yellow>• {mainName} x{val1}</color>";
-                }
-
-                if (reqs.blessed_enchant_prefab.IsValid())
-                {
-                    string blessName = ZNetScene.instance.GetPrefab(reqs.blessed_enchant_prefab.prefab)
-                        .GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-                    int val2 = reqs.blessed_enchant_prefab.amount;
-                    canBe += $"\n<color=yellow>• {blessName} x{val2}</color>";
-                }
-
-                if (reqs.required_skill > 0)
-                {
-                    canBe += "\n<color=yellow>• $enchantment_requiresskilllevel</color>".Localize(reqs.required_skill.ToString());
-                }
-
-                __result += canBe;
+                asteriskColor = "#FF0000"; // Red
+            }
+            else if (numberOfAsterisks >= 8)
+            {
+                asteriskColor = "#FFA500"; // Orange
+            }
+            else if (numberOfAsterisks >= 6)
+            {
+                asteriskColor = "#CC00CC"; // Purple
+            }
+            else if (numberOfAsterisks >= 4)
+            {
+                asteriskColor = "#4444FF"; // Blue
+            }
+            else if (numberOfAsterisks >= 2)
+            {
+                asteriskColor = "#00FF00"; // Green
+            }
+            else
+            {
+                asteriskColor = "#777777"; // Grey
             }
 
-        }
-    }
-
-    [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateRecipe))]
-    [ClientOnlyPatch]
-    private static class InventoryGui_UpdateRecipe_Patch
-    {
-        [UsedImplicitly]
-        private static void Postfix(InventoryGui __instance)
-        {
-            Enchanted en = __instance.m_selectedRecipe.Value?.Data().Get<Enchanted>();
-            if (!en) return;
-            string color = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
-            __instance.m_recipeName.text += $" (<color={color}>+{en!.level}</color>)";
-        }
-    }
-
-    [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.AddRecipeToList))]
-    [ClientOnlyPatch]
-    private static class InventoryGui_AddRecipeToList_Patch
-    {
-        private static void Modify(ref string text, ItemDrop.ItemData item)
-        {
-            Enchanted en = item?.Data().Get<Enchanted>();
-            if (!en) return;
-            string color = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
-            text += $" (<color={color}>+{en!.level}</color>)";
-        }
-
-        [UsedImplicitly]
-        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> code)
-        {
-            CodeMatcher matcher = new(code);
-            matcher.MatchForward(false, new CodeMatch(OpCodes.Stloc_2));
-            if (matcher.IsInvalid) return matcher.InstructionEnumeration();
-            MethodInfo method = AccessTools.Method(typeof(InventoryGui_AddRecipeToList_Patch), nameof(Modify));
-            matcher.Advance(1).InsertAndAdvance(new CodeInstruction(OpCodes.Ldloca_S, 2))
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Ldarg_3))
-                .InsertAndAdvance(new CodeInstruction(OpCodes.Call, method));
-            return matcher.InstructionEnumeration();
+            string asteriskText = $"<color={asteriskColor}>{asterisks}</color>";
+            return asteriskText;
         }
     }
 
@@ -869,97 +668,6 @@ public static class Enchantment_Core
                     bonustext.gameObject.SetActive(true);
                 }
             }
-        }
-    }
-
-    [HarmonyPatch(typeof(Player), nameof(Player.FixedUpdate))]
-    [ClientOnlyPatch]
-    public static class Player_FixedUpdate_Patch
-    {
-        [UsedImplicitly]
-        private static void Postfix(Player __instance)
-        {
-            if (!__instance.IsDead())
-            {
-                float fixedDeltaTime = Time.fixedDeltaTime;
-                __instance.UpdateEnchantmentRegen(fixedDeltaTime);
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(Player), nameof(Player.UpdateStats), typeof(float))]
-    [ClientOnlyPatch]
-    public static class Player_UpdateStats_Patch
-    {
-        [UsedImplicitly]
-        private static void Postfix(Player __instance, float dt)
-        {
-            __instance.UpdateEnchantmentStaminaRegen(dt);
-        }
-    }
-}
-
-public static class PlayerExtensions
-{
-    private static float enchantmentRegenTimer = 0f;
-
-    public static void UpdateEnchantmentRegen(this Player player, float dt)
-    {
-        enchantmentRegenTimer += dt;
-        if (enchantmentRegenTimer >= 10f)
-        {
-            enchantmentRegenTimer = 0f;
-            float regen = 0f;
-            foreach (var en in player.EquippedEnchantments())
-            {
-                if (en.Stats is { } stats)
-                {
-                    regen += stats.hp_regen;
-                }
-            }
-            if (regen > 0)
-            {
-                player.Heal(regen);
-            }
-        }
-    }
-
-    public static void UpdateEnchantmentStaminaRegen(this Player player, float dt)
-    {
-        if (player.IsDead() || player.InIntro() || player.IsTeleporting())
-        {
-            return;
-        }
-
-        bool flag = player.IsEncumbered();
-        float maxStamina = player.GetMaxStamina();
-        float num = 1f;
-        if (player.IsBlocking())
-        {
-            num *= 0.8f;
-        }
-        if ((player.IsSwimming() && !player.IsOnGround()) || player.InAttack() || player.InDodge() || player.m_wallRunning || flag)
-        {
-            num = 0f;
-        }
-
-        float additionalRegen = 0f;
-        foreach (var en in player.EquippedEnchantments())
-        {
-            if (en.Stats is { } stats)
-            {
-                additionalRegen += stats.stamina_regen;
-            }
-        }
-
-        if (additionalRegen > 0f)
-        {
-            float staminaMultiplier = 1f;
-            player.m_seman.ModifyStaminaRegen(ref staminaMultiplier);
-            float regenAmount = additionalRegen * staminaMultiplier * num * dt;
-
-            player.m_stamina = Mathf.Min(maxStamina, player.m_stamina + regenAmount * Game.m_staminaRegenRate);
-            player.m_nview.GetZDO().Set(ZDOVars.s_stamina, player.m_stamina);
         }
     }
 }

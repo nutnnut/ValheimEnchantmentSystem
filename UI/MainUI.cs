@@ -478,7 +478,7 @@ public static class VES_UI
         if (enchantSkillLvl < reqs.required_skill) return;
         
         Enchantment_Core.Enchanted en = item.Data().Get<Enchantment_Core.Enchanted>();
-        if(en && en!.GetEnchantmentChance() <= 0) return;
+        if(en && en!.GetEnchantmentChance() <= 0 && en!.GetRerollChance() <= 0) return;
 
         _currentItem = item;
 
@@ -493,7 +493,7 @@ public static class VES_UI
         {
             string c = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
             Color cColor = c.ToColorAlpha();
-            itemName += $" (<color={c.IncreaseColorLight()}>+{en.level}{Enchantment_Core.GenerateAsteriskSuffix(en)}</color>)";
+            itemName += $" (<color={c.IncreaseColorLight()}>+{en.level}{en.GenerateAsteriskSuffix()}</color>)";
             Item_Trail.color = cColor;
             UpdateChanceText();
         }
