@@ -43,7 +43,7 @@ public static class TerminalCommands
                     return;
                 }
                 args.Context.AddString("Floats: " + en.randomizedFloat.SerializeJson());
-                ValheimEnchantmentSystem._thistype.StartCoroutine(Enchantment_Core.FrameSkipEquip(item));
+                // ValheimEnchantmentSystem._thistype.StartCoroutine(Enchantment_Core.FrameSkipEquip(item));
             });
 
             new Terminal.ConsoleCommand("setenchant", "", (args) =>

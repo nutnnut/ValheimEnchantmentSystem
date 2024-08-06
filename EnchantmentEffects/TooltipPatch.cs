@@ -113,12 +113,12 @@ public class TooltipPatch
             int chance = en.GetEnchantmentChance();
             if (chance > 0)
             {
-                __result += $"\n<color={color}>•</color> $enchantment_chance (<color={color}>{chance}%</color>)";
-                float additionalChance = SyncedData.GetAdditionalEnchantmentChance();
-                if (additionalChance > 0)
-                {
-                    __result += $" (<color={color}>+{additionalChance.RoundOne()}%</color> $enchantment_additionalchance)";
-                }
+                //__result += $"\n<color={color}>•</color> $enchantment_chance (<color={color}>{chance}%</color>)";
+                //float additionalChance = SyncedData.GetAdditionalEnchantmentChance();
+                //if (additionalChance > 0)
+                //{
+                //    __result += $" (<color={color}>+{additionalChance.RoundOne()}%</color> $enchantment_additionalchance)";
+                //}
             }
             if (chance <= 0)
             {
@@ -143,13 +143,13 @@ public class TooltipPatch
                 canBe += $"\n<color=yellow>• {mainName} x{val1}</color>";
             }
 
-            if (reqs.blessed_enchant_prefab.IsValid())
-            {
-                string blessName = ZNetScene.instance.GetPrefab(reqs.blessed_enchant_prefab.prefab)
-                    .GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
-                int val2 = reqs.blessed_enchant_prefab.amount;
-                canBe += $"\n<color=yellow>• {blessName} x{val2}</color>";
-            }
+            //if (reqs.blessed_enchant_prefab.IsValid())
+            //{
+            //    string blessName = ZNetScene.instance.GetPrefab(reqs.blessed_enchant_prefab.prefab)
+            //        .GetComponent<ItemDrop>().m_itemData.m_shared.m_name;
+            //    int val2 = reqs.blessed_enchant_prefab.amount;
+            //    canBe += $"\n<color=yellow>• {blessName} x{val2}</color>";
+            //}
 
             if (reqs.required_skill > 0)
             {
