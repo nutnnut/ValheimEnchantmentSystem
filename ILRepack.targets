@@ -4,6 +4,7 @@
 		<ItemGroup>
 			<InputAssemblies Include="$(TargetPath)"/>
 			<InputAssemblies Include="$(OutputPath)\fastJSON.dll" />
+			<InputAssemblies Include="$(OutputPath)\Newtonsoft.Json.dll" />
 			<InputAssemblies Include="$(OutputPath)\YamlDotNet.dll" />
 			<InputAssemblies Include="$(OutputPath)\ItemDataManager.dll" />
 			<InputAssemblies Include="$(OutputPath)\JewelcraftingAPI.dll" />

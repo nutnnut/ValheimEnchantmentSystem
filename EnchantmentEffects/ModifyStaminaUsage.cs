@@ -10,16 +10,7 @@ public class ModifyAttackStamina_Attack_GetStaminaUsage_Patch
     {
         if (__instance.m_character is Player player)
         {
-            float multiplier = 1f;
-            foreach (var en in player.EquippedEnchantments())
-            {
-                if (en.Stats is { } stats)
-                {
-                    multiplier *= 1 - stats.stamina_use_reduction_percent / 100f;
-                }
-            }
-
-            __result *= multiplier;
+            __result *= player.GetTotalEnchantedMultiplierDecreaseMultiplicative("stamina_use_reduction_percent");
         }
     }
 }

@@ -6,6 +6,8 @@ using AutoISP;
 using static PrivilegeManager;
 using UnityEngine;
 using ItemManager;
+using fastJSON;
+using static fastJSON.Reflection;
 
 namespace kg.ValheimEnchantmentSystem.Configs;
 
@@ -294,91 +296,79 @@ public static class SyncedData
 
     public static Stat_Data GetStatIncrease(Enchantment_Core.Enchanted en)
     {
-        if (en.level == 0) return null;
+        if (en == null || en.enchantedItem == null || en.enchantedItem.level == 0) return null;
+        int level = en.enchantedItem.level;
+
         string dropPrefab = en.Item.m_dropPrefab?.name;
         if (dropPrefab != null && OPTIMIZED_Overrides_EnchantmentStats.TryGetValue(dropPrefab, out Dictionary<int, Stat_Data> overriden))
         {
-            return overriden.TryGetValue(en.level, out Stat_Data overrideChance) ? overrideChance : null;
+            return overriden.TryGetValue(level, out Stat_Data overrideChance) ? overrideChance : null;
         }
 
         Dictionary<int, Stat_Data> target = en.Item.IsWeapon() ? Synced_EnchantmentStats_Weapons.Value : Synced_EnchantmentStats_Armor.Value;
-        return target.TryGetValue(en.level, out Stat_Data increase) ? increase : null;
+        return target.TryGetValue(level, out Stat_Data increase) ? increase : null;
     }
 
-    public static Stat_Data_Float GetRandomizedMultiplier(Enchantment_Core.Enchanted en)
+    public static float GetStatIncrease(Enchantment_Core.Enchanted en, string effectType)
     {
-        if (en?.level <= 0)
+        var field = typeof(Stat_Data).GetField(effectType, BindingFlags.Public | BindingFlags.Instance);
+        var baseStats = SyncedData.GetStatIncrease(en);
+        return field != null && baseStats != null ? Convert.ToSingle(field.GetValue(baseStats)) : 0f;
+    }
+
+    public static List<EnchantmentEffect> GetRandomizedMultiplier(Enchantment_Core.Enchanted en)
+    {
+        if (en?.enchantedItem?.level <= 0)
         {
             Debug.LogWarning("VES No floats because item null or lv0");
-            return new Stat_Data_Float();
+            return new List<EnchantmentEffect>();
         }
         var allStats = GetStatIncrease(en);
         if (allStats == null)
         {
-            Debug.LogWarning("VES No possible stats found while randomizing, check your EnchantmentStats config yml");
-            return new Stat_Data_Float();
+            Debug.LogError("VES No possible stats found while randomizing, check your EnchantmentStats config yml");
+            return new List<EnchantmentEffect>();
         }
-        Debug.LogWarning("VES loading possible fields...");
         var selectedStats = new Stat_Data();
-        var multipliers = new Stat_Data_Float();
-        var fields = typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance)
+        var multipliers = new List<EnchantmentEffect>();
+        var possibleFields = typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance)
                                    .Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float))
                                    .Where(f => Convert.ToDouble(f.GetValue(allStats)) != 0)
                                    .ToList();
 
         var lineCount = 2 + (en.level / 4); // Base + Level
-        while (UnityEngine.Random.value <= 0.5 && lineCount < fields.Count) // Extra by chance
+        while (UnityEngine.Random.value <= 0.5 && lineCount < possibleFields.Count) // Extra by chance
         {
             lineCount++;
         }
 
         // Apply pity system
-        int oldLineCount = 0;
-        try
-        {
-            oldLineCount = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
-                                                 .Count(f => Convert.ToSingle(f.GetValue(en.randomizedFloat)) != 0);
-        }
-        catch (Exception ex)
-        {
-            oldLineCount = 0;
-            if (en.level > 1)
-            {
-                Debug.LogWarning($"Error counting fields with non-zero values in Stat_Data_Float: {ex}");
-            }
-        }
-        lineCount = Mathf.Clamp(lineCount, oldLineCount - 1, fields.Count);
+        int oldLineCount = en.enchantedItem.effects.Count;
+        lineCount = Mathf.Clamp(lineCount, oldLineCount - 1, possibleFields.Count);
 
-        var randomFields = fields.OrderBy(f => UnityEngine.Random.value).Take(lineCount).ToList();
+        // 30% 0.5
+        // 30% 0.75
+        // 30% 1.0
+        // 3.33% 1.0
+        // 3.33% 1.5
+        // 3.33% 2.0
+        float minMult = 0.5f;
+        float maxMult = 1.0f;
+        float interval = 0.25f;
+        float bonusMultiplierChance = 0.1f;
+        float bonusMultiplier = 2.0f;
+
+        var randomFields = possibleFields.OrderBy(f => UnityEngine.Random.value).Take(lineCount).ToList();
         foreach (var field in randomFields)
         {
             var originalValue = Convert.ToDouble(field.GetValue(allStats));
-
-            float interval = 0.25f;
-            float minMult = 0.5f;
-            float maxMult = 1.0f;
-            float bonusMultiplierChance = 0.1f;
-            float bonusMultiplier = 2.0f;
-            float randomMultiplier = Mathf.Round(UnityEngine.Random.Range(minMult / interval, maxMult / interval)) * interval;
-
-            // 30% 0.5
-            // 30% 0.75
-            // 30% 1.0
-            // 3.33% 1.0
-            // 3.33% 1.5
-            // 3.33% 2.0
+            float floatMultiplier = Mathf.Round(UnityEngine.Random.Range(minMult / interval, maxMult / interval)) * interval;
             if (UnityEngine.Random.value <= bonusMultiplierChance) // 10% chance to get double bonus
             {
-                randomMultiplier *= bonusMultiplier;
+                floatMultiplier *= bonusMultiplier;
             }
 
-            var multiplierField = typeof(Stat_Data_Float).GetField(field.Name);
-            if (multiplierField == null)
-            {
-                Debug.LogError("VES multiplierField not found, skipping: " + field.Name);
-                continue;
-            }
-            multiplierField.SetValue(multipliers, randomMultiplier);
+            multipliers.Add(new EnchantmentEffect(field.Name, floatMultiplier));
         }
 
         return multipliers;
@@ -609,16 +599,17 @@ public static class SyncedData
             return JsonUtility.FromJson<Stat_Data>(json);
         }
 
-        public Stat_Data ApplyMultiplier(Stat_Data_Float multipliers)
+        public Stat_Data ApplyMultiplier(EnchantedItem item)
         {
             var multipliedStats = new Stat_Data();
+            if (item == null || item.effects == null) return multipliedStats;
             foreach (var field in typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
                 var baseValue = Convert.ToDouble(field.GetValue(this));
                 var multiplierField = typeof(Stat_Data_Float).GetField(field.Name);
                 if (multiplierField != null)
                 {
-                    var multiplier = (float)multiplierField.GetValue(multipliers);
+                    var multiplier = item.GetTotalFloat(field.Name);
                     var newValue = baseValue * multiplier;
                     if (field.FieldType == typeof(int))
                     {
@@ -634,7 +625,7 @@ public static class SyncedData
         }
     }
 
-    public class Stat_Data_Float
+    public class Stat_Data_Float // deprecated
     {
         public float durability = 0.0f;
         public float durability_percentage = 0.0f;

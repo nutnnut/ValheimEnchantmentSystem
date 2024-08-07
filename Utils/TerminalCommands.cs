@@ -42,8 +42,7 @@ public static class TerminalCommands
                     args.Context.AddString($"{item.m_dropPrefab.name} is not Enchantable.");
                     return;
                 }
-                args.Context.AddString("Floats: " + en.randomizedFloat.SerializeJson());
-                // ValheimEnchantmentSystem._thistype.StartCoroutine(Enchantment_Core.FrameSkipEquip(item));
+                args.Context.AddString("Floats: " + en.enchantedItem.ToString());
             });
 
             new Terminal.ConsoleCommand("setenchant", "", (args) =>
@@ -76,10 +75,10 @@ public static class TerminalCommands
                     args.Context.AddString($"{item.m_dropPrefab.name} is not Enchantable.");
                     return;
                 }
-                en.level = level;
+                en.enchantedItem.level = level;
                 en.EnchantReroll();
                 args.Context.AddString("Enchantment level set to " + level);
-                args.Context.AddString("Floats: " + en.randomizedFloat.SerializeJson());
+                args.Context.AddString("Floats: " + en.enchantedItem.ToString());
                 ValheimEnchantmentSystem._thistype.StartCoroutine(Enchantment_Core.FrameSkipEquip(item));
             });
             
@@ -91,7 +90,7 @@ public static class TerminalCommands
                 foreach (ItemDrop.ItemData item in Player.m_localPlayer.m_inventory.m_inventory.Where(x => SyncedData.GetReqs(x.m_dropPrefab?.name) != null))
                 {
                     Enchantment_Core.Enchanted en = item.Data().GetOrCreate<Enchantment_Core.Enchanted>();
-                    en.level = level;
+                    en.enchantedItem.level = level;
                     en.EnchantReroll();
                 }
             });

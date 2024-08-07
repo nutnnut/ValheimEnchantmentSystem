@@ -40,8 +40,14 @@
     <Compile Include="Configs\BepInEx_ConfigurationManager.cs" />
     <Compile Include="Configs\Defaults.cs" />
     <Compile Include="Configs\SyncedData.cs" />
-    <Compile Include="EnchantmentEffects\ModifyReloadSpeed.cs" />
+    <Compile Include="EnchantmentEffects\ModifyDurability.cs" />
+    <Compile Include="EnchantmentEffects\ModifyDamage.cs" />
+    <Compile Include="EnchantmentEffects\ModifyMovementSpeed.cs" />
+    <Compile Include="EnchantmentEffects\ModifyResistances.cs" />
+    <Compile Include="EnchantmentEffects\ModifySkillLevel.cs" />
+    <Compile Include="EnchantmentEffects\ModifyAttackSpeed.cs" />
     <Compile Include="EnchantmentEffects\ModifyEtir.cs" />
+    <Compile Include="Enchantment_Enchanted_Item.cs" />
     <Compile Include="Enchantment_Core.cs" />
     <Compile Include="Enchantment_Skill.cs" />
     <Compile Include="Enchantment_VFX.cs" />
@@ -55,10 +61,11 @@
     <Compile Include="Misc\Convertions.cs" />
     <Compile Include="Misc\DiscordWebhook.cs" />
     <Compile Include="Misc\External_AsmLoad.cs" />
+    <Compile Include="EnchantmentEffects\ModifyArmorAndBlockPower.cs" />
     <Compile Include="Other_Mods_APIs.cs" />
     <Compile Include="EnchantmentEffects\PlayerExtension.cs" />
     <Compile Include="StatsPanel.cs" />
-    <Compile Include="EnchantmentEffects\TooltipPatch.cs" />
+    <Compile Include="EnchantmentEffects\PatchToolTips.cs" />
     <Compile Include="UI\InfoUI.cs" />
     <Compile Include="UI\MainUI.cs" />
     <Compile Include="UI\NotificationsUI.cs" />
@@ -251,9 +258,6 @@
     <Reference Include="assembly_valheim">
       <HintPath>Libs\assembly_valheim.dll</HintPath>
     </Reference>
-    <Reference Include="assembly_valheim_publicized">
-      <HintPath>..\..\SteamLibrary\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\assembly_valheim_publicized.dll</HintPath>
-    </Reference>
     <Reference Include="BepInEx">
       <HintPath>Libs\BepInEx.dll</HintPath>
     </Reference>
@@ -270,6 +274,10 @@
       <HintPath>Libs\JewelcraftingAPI.dll</HintPath>
     </Reference>
     <Reference Include="netstandard" />
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>Libs\Newtonsoft.Json.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="Unity.TextMeshPro">
       <HintPath>Libs\Unity.TextMeshPro.dll</HintPath>

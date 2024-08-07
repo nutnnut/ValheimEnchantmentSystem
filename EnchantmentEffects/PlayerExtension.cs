@@ -3,6 +3,31 @@ using kg.ValheimEnchantmentSystem.Misc;
 
 namespace kg.ValheimEnchantmentSystem.EnchantmentEffects;
 
+[HarmonyPatch(typeof(Character), nameof(Character.SetMaxHealth))]
+[ClientOnlyPatch]
+public static class Character_SetMaxHealth_Patch
+{
+    [UsedImplicitly]
+    private static void Prefix(Character __instance, ref float health)
+    {
+        if (__instance is Player player)
+        {
+            health += player.GetTotalEnchantedValue("max_hp");
+        }
+    }
+}
+
+[HarmonyPatch(typeof(Player), nameof(Player.SetMaxStamina))]
+[ClientOnlyPatch]
+public static class Player_SetMaxStamina_Patch
+{
+    [UsedImplicitly]
+    private static void Prefix(Player __instance, ref float stamina)
+    {
+        stamina += __instance.GetTotalEnchantedValue("max_stamina");
+    }
+}
+
 [HarmonyPatch(typeof(Player), nameof(Player.FixedUpdate))]
 [ClientOnlyPatch]
 public static class Player_FixedUpdate_Patch
@@ -10,7 +35,7 @@ public static class Player_FixedUpdate_Patch
     [UsedImplicitly]
     private static void Postfix(Player __instance)
     {
-        if (!__instance.IsDead())
+        if (__instance != null && !__instance.IsDead())
         {
             float fixedDeltaTime = Time.fixedDeltaTime;
             __instance.UpdateEnchantmentHPRegen(fixedDeltaTime);
@@ -29,24 +54,19 @@ public static class Player_UpdateStats_Patch
     }
 }
 
-public static class PlayerExtension
+public static partial class PlayerExtension
 {
     private static float enchantmentRegenTimer = 0f;
 
     public static void UpdateEnchantmentHPRegen(this Player player, float dt)
     {
+        if (player == null) return;
+        
         enchantmentRegenTimer += dt;
         if (enchantmentRegenTimer >= 10f)
         {
             enchantmentRegenTimer = 0f;
-            float regen = 0f;
-            foreach (var en in player.EquippedEnchantments())
-            {
-                if (en.Stats is { } stats)
-                {
-                    regen += stats.hp_regen;
-                }
-            }
+            float regen = player.GetTotalEnchantedValue("hp_regen");
             if (regen > 0)
             {
                 player.Heal(regen);
@@ -73,14 +93,7 @@ public static class PlayerExtension
             num = 0f;
         }
 
-        float additionalRegen = 0f;
-        foreach (var en in player.EquippedEnchantments())
-        {
-            if (en.Stats is { } stats)
-            {
-                additionalRegen += stats.stamina_regen;
-            }
-        }
+        float additionalRegen =  player.GetTotalEnchantedValue("stamina_regen");
 
         if (additionalRegen > 0f)
         {
