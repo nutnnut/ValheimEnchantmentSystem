@@ -108,7 +108,16 @@ public class PatchToolTips
                 if (stats.movement_speed > 0)
                 {
                     var totalMovementModifier = Player.m_localPlayer.GetEquipmentMovementModifier() * 100f;
-                    __result = new Regex("(\\$item_movement_modifier.*)").Replace(__result, $"$1 <color={color}>(+{stats.movement_speed}%) ($item_total:{totalMovementModifier:+0;-0}%</color>)");
+                    bool replaced = false;
+                    __result = Regex.Replace(__result, @"(\$item_movement_modifier.*)", match =>
+                    {
+                        replaced = true;
+                        return $"{match.Value} <color={color}>+{stats.movement_speed}% ($item_total:{totalMovementModifier:+0;-0}%)</color>";
+                    });
+                    if (!replaced)
+                    {
+                        __result += $"\n<color={color}>$item_movement_modifier: +{stats.movement_speed}% ($item_total:{totalMovementModifier:+0;-0}%)</color>";
+                    }
                 }
 
                 __result += stats.BuildAdditionalStats(color);
