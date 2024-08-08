@@ -184,6 +184,11 @@ public static class Enchantment_Core
             enchantedItem = new EnchantedItem(level_legacy, new List<EnchantmentEffect>());
         }
 
+        public int GetDestroyChance()
+        {
+            return SyncedData.GetEnchantmentChance(this).destroy;
+        }
+
         public int GetRerollChance()
         {
             return SyncedData.GetEnchantmentChance(this).reroll;

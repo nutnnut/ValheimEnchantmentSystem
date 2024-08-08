@@ -54,6 +54,8 @@ public static class VES_UI
     
     private static Transform Chance_Transform;
     private static Text Chance_Text;
+    private static Transform Destroy_Chance_Transform; // chance to destroy (or downgrade, depending on config)
+    private static Text Destroy_Chance_Text;
 
     private static float _itemStartX, _scrollStartX;
     private static float _startY;
@@ -111,7 +113,7 @@ public static class VES_UI
         UseBless_Transform.Find("Text").GetComponent<Text>().text = "$enchantment_usebless".Localize();
         UseBless_Transform.Find("Text").GetComponent<Text>().color = Color.yellow;
 
-        CreateRerollElement();
+        Reroll_Transform = DuplicateTransform(UseBless_Transform, "Reroll");
         Reroll_Icon = Reroll_Transform.Find("Icon").GetComponent<Image>();
         Reroll_Transform.Find("Text").GetComponent<Text>().text = "$enchantment_reroll".Localize();
         Reroll_Transform.Find("Text").GetComponent<Text>().color = Color.magenta;
@@ -126,7 +128,12 @@ public static class VES_UI
 
         Chance_Transform = UI.transform.Find("Canvas/Background/Chance");
         Chance_Text = Chance_Transform.Find("Text").GetComponent<Text>();
-        
+
+        Destroy_Chance_Transform = DuplicateTransform(Chance_Transform, "DestroyChance");
+        Destroy_Chance_Text = Destroy_Chance_Transform.Find("Text").GetComponent<Text>();
+        Destroy_Chance_Text.color = Color.red;
+        Destroy_Chance_Transform.localPosition = new Vector3(Destroy_Chance_Transform.localPosition.x + 50, Destroy_Chance_Transform.localPosition.y, Destroy_Chance_Transform.localPosition.z);
+
         _itemStartX = Item_Transform.GetComponent<RectTransform>().anchoredPosition.x;
         _scrollStartX = Scroll_Transform.GetComponent<RectTransform>().anchoredPosition.x;
         _startY = Scroll_Transform.GetComponent<RectTransform>().anchoredPosition.y;
@@ -156,12 +163,11 @@ public static class VES_UI
         Default();
     }
 
-    public static void CreateRerollElement()
+    public static Transform DuplicateTransform(Transform UseBless_Transform, string asName)
     {
-        // Duplicate the UseBless GameObject
-        GameObject Reroll_Object = UnityEngine.Object.Instantiate(UseBless_Transform.gameObject, UseBless_Transform.parent);
-        Reroll_Object.name = "Reroll";
-        Reroll_Transform = Reroll_Object.transform;
+        GameObject newObject = UnityEngine.Object.Instantiate(UseBless_Transform.gameObject, UseBless_Transform.parent);
+        newObject.name = asName;
+        return newObject.transform;
     }
 
     private static void Start_ButtonClick()
@@ -507,6 +513,7 @@ public static class VES_UI
             itemName += " (<color=#FFFFFF>+0</color>)";
             Item_Trail.color = new Color(1f, 1f, 1f, 0.8f);
             Chance_Text.text = "100%";
+            Destroy_Chance_Transform.gameObject.SetActive(false);
         }
 
         Item_Text.text = itemName;
@@ -550,18 +557,22 @@ public static class VES_UI
     private static void UpdateChanceText()
     {
         Enchantment_Core.Enchanted en = _currentItem.Data().Get<Enchantment_Core.Enchanted>();
+        double success;
         if (_reroll)
         {
-            double chance = (en.GetRerollChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
-            if (chance > 100) chance = 100;
-            Chance_Text.text = $"{chance}%";
+            success = (en.GetRerollChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
         }
         else
         {
-            double chance = (en.GetEnchantmentChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
-            if (chance > 100) chance = 100;
-            Chance_Text.text = $"{chance}%";
+            success = (en.GetEnchantmentChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
         }
+
+        if (success > 100) success = 100;
+        Chance_Text.text = $"{success}%";
+        double destroy = en.GetDestroyChance();
+        double destroy_total = (100 - success) / 100f * destroy;
+        Destroy_Chance_Text.text = $"{destroy}%\n({destroy_total}%)";
+        Destroy_Chance_Transform.gameObject.SetActive(destroy > 0);
     }
 
     private static void Show()
