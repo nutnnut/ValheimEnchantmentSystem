@@ -223,6 +223,12 @@ public static class Enchantment_Core
             return IsEnchantablePrefab();
         }
 
+        public bool CanReroll()
+        {
+            if (GetRerollChance() <= 0) return false;
+            return IsEnchantablePrefab();
+        }
+
         public bool IsEnchantablePrefab()
         {
             SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(Item.m_dropPrefab.name);
@@ -241,7 +247,7 @@ public static class Enchantment_Core
         public bool Reroll(bool safeEnchant, out string msg)
         {
             msg = "";
-            if (!CanEnchant())
+            if (!CanReroll())
             {
                 msg = "$enchantment_cannotbe".Localize();
                 return false;
@@ -477,6 +483,11 @@ public static partial class PlayerExtension
         return totalValue;
     }
 
+    // 20% = 1.2x
+    // 40% = 1.4x
+    // 20% + 20% = 1.44x
+    // 20% + 20% + 20% = 1.728x
+    // Extremely powerful if stacked
     public static float GetTotalEnchantedMultiplierIncreaseMultiplicative(this Player player, string effectType)
     {
         var totalValue = EquipmentEffectCache.Get(player, effectType, () =>
@@ -487,6 +498,11 @@ public static partial class PlayerExtension
         return totalValue;
     }
 
+    // 20% = 0.8x
+    // 40% = 0.6x
+    // 20% + 20% = 0.64x
+    // 20% + 20% + 20% = 0.512x
+    // Good for preventing stackable bonuses from going negative
     public static float GetTotalEnchantedMultiplierDecreaseMultiplicative(this Player player, string effectType)
     {
         var totalValue = EquipmentEffectCache.Get(player, effectType, () =>

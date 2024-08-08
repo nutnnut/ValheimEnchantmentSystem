@@ -431,7 +431,12 @@ public static class VES_UI
     private static void Reroll_ButtonClick()
     {
         if (_currentItem == null) return;
+        Enchantment_Core.Enchanted en = _currentItem.Data().Get<Enchantment_Core.Enchanted>();
         _reroll = !_reroll;
+        if (en.GetEnchantmentChance() <= 0) // For max level, only reroll is allowed
+        {
+            _reroll = true;
+        }
         Reroll_Icon.gameObject.SetActive(_reroll);
 
         SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(_currentItem.m_dropPrefab?.name);
@@ -512,6 +517,11 @@ public static class VES_UI
 
         Reroll_Transform.gameObject.SetActive(en?.level > 0);
         Reroll_Icon.gameObject.SetActive(false);
+
+        if (en.GetEnchantmentChance() <= 0) // max level
+        {
+            Reroll_ButtonClick();
+        }
 
         RectTransform Scroll_Rect = Scroll_Transform.GetComponent<RectTransform>();
         Scroll_Rect.anchoredPosition = new Vector2(_scrollStartX, _startY);
