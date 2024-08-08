@@ -445,14 +445,7 @@ public static class Enchantment_Core
     public static double ModifyAttackSpeed(Character c, double speed)
     {
         if (c != Player.m_localPlayer || !c.InAttack()) return speed;
-
-        ItemDrop.ItemData weapon = Player.m_localPlayer.GetCurrentWeapon();
-        if (weapon == null) return speed;
-
-        if (weapon.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { attack_speed: > 0 } stats)
-            return speed * (1 + stats.attack_speed / 100f);
-
-        return speed;
+        return speed * (1.0f + Player.m_localPlayer.GetTotalEnchantedValue("attack_speed") / 100f);
     }
 }
 
