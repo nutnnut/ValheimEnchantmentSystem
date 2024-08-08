@@ -3,20 +3,6 @@ using kg.ValheimEnchantmentSystem.Misc;
 
 namespace kg.ValheimEnchantmentSystem.EnchantmentEffects;
 
-[HarmonyPatch(typeof(Character), nameof(Character.SetMaxHealth))]
-[ClientOnlyPatch]
-public static class Character_SetMaxHealth_Patch
-{
-    [UsedImplicitly]
-    private static void Prefix(Character __instance, ref float health)
-    {
-        if (__instance is Player player)
-        {
-            health += player.GetTotalEnchantedValue("max_hp");
-        }
-    }
-}
-
 [HarmonyPatch(typeof(Player), nameof(Player.SetMaxStamina))]
 [ClientOnlyPatch]
 public static class Player_SetMaxStamina_Patch
@@ -28,21 +14,20 @@ public static class Player_SetMaxStamina_Patch
     }
 }
 
-[HarmonyPatch(typeof(Player), nameof(Player.FixedUpdate))]
-[ClientOnlyPatch]
-public static class Player_FixedUpdate_Patch
+[HarmonyPatch(typeof(SEMan), nameof(SEMan.ModifyStaminaRegen))]
+public static class SEMan_ModifyStaminaRegen_Patch
 {
-    [UsedImplicitly]
-    private static void Postfix(Player __instance)
+    public static void Postfix(SEMan __instance, ref float staminaMultiplier)
     {
-        if (__instance != null && !__instance.IsDead())
+        if (__instance.m_character.IsPlayer())
         {
-            float fixedDeltaTime = Time.fixedDeltaTime;
-            __instance.UpdateEnchantmentHPRegen(fixedDeltaTime);
+            var player = __instance.m_character as Player;
+            staminaMultiplier += player.GetTotalEnchantedValue("stamina_regen_percentage") / 100f;
         }
     }
 }
 
+// Regen on independent timer
 [HarmonyPatch(typeof(Player), nameof(Player.UpdateStats), typeof(float))]
 [ClientOnlyPatch]
 public static class Player_UpdateStats_Patch
@@ -56,24 +41,7 @@ public static class Player_UpdateStats_Patch
 
 public static partial class PlayerExtension
 {
-    private static float enchantmentRegenTimer = 0f;
-
-    public static void UpdateEnchantmentHPRegen(this Player player, float dt)
-    {
-        if (player == null) return;
-        
-        enchantmentRegenTimer += dt;
-        if (enchantmentRegenTimer >= 10f)
-        {
-            enchantmentRegenTimer = 0f;
-            float regen = player.GetTotalEnchantedValue("hp_regen");
-            if (regen > 0)
-            {
-                player.Heal(regen);
-            }
-        }
-    }
-
+    // Regen on independent timer, may get unintended result if base game changes this
     public static void UpdateEnchantmentStaminaRegen(this Player player, float dt)
     {
         if (player.IsDead() || player.InIntro() || player.IsTeleporting())
@@ -93,7 +61,7 @@ public static partial class PlayerExtension
             num = 0f;
         }
 
-        float additionalRegen =  player.GetTotalEnchantedValue("stamina_regen");
+        float additionalRegen = player.GetTotalEnchantedValue("stamina_regen");
 
         if (additionalRegen > 0f)
         {

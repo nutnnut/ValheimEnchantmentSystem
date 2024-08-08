@@ -502,6 +502,7 @@ public static class SyncedData
             if (hp_regen > 0) builder.Append($"\n<color={color}>•</color> $se_healthregen: <color=#ff8080ff>+{hp_regen}/10s</color>");
             if (max_stamina > 0) builder.Append($"\n<color={color}>•</color> $se_stamina: <color=#ffff80ff>+{max_stamina}</color>");
             if (stamina_regen > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen}/s</color>");
+            if (stamina_regen_percentage > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen_percentage}%</color>");
             if (stamina_use_reduction_percent > 0) builder.Append($"\n<color={color}>•</color> $item_staminause: <color=#ffff80ff>-{stamina_use_reduction_percent}%</color>");
             if (max_eitr > 0) builder.Append($"\n<color={color}>•</color> $item_food_eitr: <color=#9090ffff>+{max_eitr}</color>");
             if (eitr_regen_percentage > 0) builder.Append($"\n<color={color}>•</color> $item_eitrregen_modifier: <color=#9090ffff>+{eitr_regen_percentage}%</color>");
@@ -580,6 +581,7 @@ public static class SyncedData
         [SerializeField] public int movement_skill;
         [SerializeField] public float hp_regen;
         [SerializeField] public float stamina_regen;
+        [SerializeField] public int stamina_regen_percentage;
         [SerializeField] public int eitr_regen_percentage;
         [SerializeField] public int stamina_use_reduction_percent;
         //api stats
@@ -606,7 +608,7 @@ public static class SyncedData
             foreach (var field in typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
                 var baseValue = Convert.ToDouble(field.GetValue(this));
-                var multiplierField = typeof(Stat_Data_Float).GetField(field.Name);
+                var multiplierField = typeof(Stat_Data).GetField(field.Name);
                 if (multiplierField != null)
                 {
                     var multiplier = item.GetTotalFloat(field.Name);
@@ -622,60 +624,6 @@ public static class SyncedData
                 }
             }
             return multipliedStats;
-        }
-    }
-
-    public class Stat_Data_Float // deprecated
-    {
-        public float durability = 0.0f;
-        public float durability_percentage = 0.0f;
-        public float armor_percentage = 0.0f;
-        public float armor = 0.0f;
-        public float damage_percentage = 0.0f;
-        public float damage_true = 0.0f;
-        public float damage_blunt = 0.0f;
-        public float damage_slash = 0.0f;
-        public float damage_pierce = 0.0f;
-        public float damage_chop = 0.0f;
-        public float damage_pickaxe = 0.0f;
-        public float damage_fire = 0.0f;
-        public float damage_frost = 0.0f;
-        public float damage_lightning = 0.0f;
-        public float damage_poison = 0.0f;
-        public float damage_spirit = 0.0f;
-        public float damage_true_percentage = 0.0f;
-        public float damage_blunt_percentage = 0.0f;
-        public float damage_slash_percentage = 0.0f;
-        public float damage_pierce_percentage = 0.0f;
-        public float damage_chop_percentage = 0.0f;
-        public float damage_pickaxe_percentage = 0.0f;
-        public float damage_fire_percentage = 0.0f;
-        public float damage_frost_percentage = 0.0f;
-        public float damage_lightning_percentage = 0.0f;
-        public float damage_poison_percentage = 0.0f;
-        public float damage_spirit_percentage = 0.0f;
-        public float attack_speed = 0.0f;
-        public float movement_speed = 0.0f;
-        public float max_hp = 0.0f;
-        public float max_stamina = 0.0f;
-        public float max_eitr = 0.0f;
-        public float weapon_skill = 0.0f;
-        public float movement_skill = 0.0f;
-        public float hp_regen = 0.0f;
-        public float stamina_regen = 0.0f;
-        public float stamina_use_reduction_percent;
-        public float eitr_regen_percentage = 0.0f;
-        public float API_backpacks_additionalrow_x = 0.0f;
-        public float API_backpacks_additionalrow_y = 0.0f;
-
-        public string SerializeJson()
-        {
-            return JsonUtility.ToJson(this);
-        }
-
-        public static Stat_Data_Float DeserializeJson(string json)
-        {
-            return JsonUtility.FromJson<Stat_Data_Float>(json);
         }
     }
 

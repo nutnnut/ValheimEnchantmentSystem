@@ -518,7 +518,7 @@ public static class VES_UI
         Reroll_Transform.gameObject.SetActive(en?.level > 0);
         Reroll_Icon.gameObject.SetActive(false);
 
-        if (en.GetEnchantmentChance() <= 0) // max level
+        if (en?.GetEnchantmentChance() <= 0) // max level
         {
             Reroll_ButtonClick();
         }
