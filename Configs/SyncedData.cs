@@ -518,17 +518,7 @@ public static class SyncedData
 
         public string Info_Description()
         {
-            string result = "";
-            if (damage_percentage > 0)
-            {
-                result += $"\n• $enchantment_bonusespercentdamage: <color=#AF009F>+{damage_percentage}%</color>";
-            }
-            if (armor_percentage > 0)
-            {
-                result += $"\n• $enchantment_bonusespercentarmor: <color=#009FAF>+{armor_percentage}%</color>";
-            }
-            result += BuildAdditionalStats("#FFFFFF");
-            return result;
+            return BuildAdditionalStats("#FFFFFF");
         }
     }
     
