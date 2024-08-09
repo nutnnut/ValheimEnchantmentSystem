@@ -278,7 +278,7 @@ public static class SyncedData
             {
                 chanceData.success = overrideChance.success;
                 chanceData.destroy = overrideChance.destroy;
-                chanceData.reroll = overrideChance.reroll != 0 ? overrideChance.reroll : 100;
+                chanceData.reroll = overrideChance.reroll;
                 return chanceData;
             }
         }
@@ -287,7 +287,7 @@ public static class SyncedData
         {
             chanceData.success = syncedChance.success;
             chanceData.destroy = syncedChance.destroy;
-            chanceData.reroll = syncedChance.reroll != 0 ? syncedChance.reroll : 100;
+            chanceData.reroll = syncedChance.reroll;
             return chanceData;
         }
 
@@ -503,7 +503,7 @@ public static class SyncedData
             if (max_stamina > 0) builder.Append($"\n<color={color}>•</color> $se_stamina: <color=#ffff80ff>+{max_stamina}</color>");
             if (stamina_regen > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen}/s</color>");
             if (stamina_regen_percentage > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen_percentage}%</color>");
-            if (stamina_use_reduction_percent > 0) builder.Append($"\n<color={color}>•</color> $item_staminause: <color=#ffff80ff>-{stamina_use_reduction_percent}%</color>");
+            if (stamina_use_reduction_percent > 0) builder.Append($"\n<color={color}>•</color> $se_attackstamina: <color=#ffff80ff>-{stamina_use_reduction_percent}%</color>");
             if (max_eitr > 0) builder.Append($"\n<color={color}>•</color> $item_food_eitr: <color=#9090ffff>+{max_eitr}</color>");
             if (eitr_regen_percentage > 0) builder.Append($"\n<color={color}>•</color> $item_eitrregen_modifier: <color=#9090ffff>+{eitr_regen_percentage}%</color>");
             if (API_backpacks_additionalrow_x > 0) builder.Append($"\n<color={color}>•</color> $enchantment_backpacks_additionalrow_x: <color=#7393B3>{API_backpacks_additionalrow_x}</color>");
