@@ -183,9 +183,9 @@ public static class Info_UI
             if (previousChance.success > 0)
             {
                 string part = $"{previousChance.success}%";
-                if (previousChance.destroy > 0)
+                double destroy_total = (100f - previousChance.success) * previousChance.destroy / 100f;
+                if (destroy_total > 0)
                 {
-                    double destroy_total = (100f - previousChance.success) * previousChance.destroy / 100f;
                     part += $"/<color=red>{destroy_total}%</color>";
                 }
                 parts.Add(part);
@@ -193,9 +193,9 @@ public static class Info_UI
             if (chance.Value.reroll > 0)
             {
                 string part = $"$enchantment_rerollchance: {chance.Value.reroll}%";
-                if (chance.Value.destroy > 0)
+                double destroy_reroll_total = (100f - chance.Value.reroll) * chance.Value.destroy / 100f;
+                if (destroy_reroll_total > 0)
                 {
-                    double destroy_reroll_total = (100f - chance.Value.reroll) * chance.Value.destroy / 100f;
                     part += $"/<color=red>{destroy_reroll_total}%</color>";
                 }
                 parts.Add(part.Localize());
