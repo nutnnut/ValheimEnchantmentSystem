@@ -132,6 +132,7 @@ public static class Enchantment_Core
                 if (baseStats == null)
                 {
                     Debug.LogError("Failed to get base stats, check config");
+                    cachedMultipliedStats = new Stat_Data();
                     return new Stat_Data();
                 }
                 cachedMultipliedStats = baseStats.ApplyMultiplier(enchantedItem);
