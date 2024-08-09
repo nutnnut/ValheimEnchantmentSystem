@@ -95,7 +95,7 @@ public static class Enchantment_Core
     {
         private Stat_Data cachedMultipliedStats;
 
-        public int level {//deprecated
+        public int level {
             get
             {
                 return enchantedItem.level;
@@ -264,7 +264,7 @@ public static class Enchantment_Core
                 return false;
             }
 
-            if (Random.Range(0f, 100f) <= 80f) // TODO: config chance
+            if (Random.Range(0f, 100f) <= GetRerollChance())
             {
                 string oldSuffix = GenerateAsteriskSuffix();
                 EnchantReroll();
@@ -413,37 +413,45 @@ public static class Enchantment_Core
         {
             float sumOfFloats = enchantedItem.GetTotalFloat();
 
-            int numberOfAsterisks = (int)Math.Round(Math.Max(sumOfFloats, 0), MidpointRounding.AwayFromZero);
-            string asterisks = new string('*', numberOfAsterisks);
-
-            string asteriskColor;
-            if (numberOfAsterisks >= 10)
+            int score = (int)Math.Round(Math.Max(sumOfFloats, 0), MidpointRounding.AwayFromZero);
+            string symbols;
+            if (score >= 10)
             {
-                asteriskColor = "#FF0000"; // Red
-            }
-            else if (numberOfAsterisks >= 8)
-            {
-                asteriskColor = "#FFA500"; // Orange
-            }
-            else if (numberOfAsterisks >= 6)
-            {
-                asteriskColor = "#CC00CC"; // Purple
-            }
-            else if (numberOfAsterisks >= 4)
-            {
-                asteriskColor = "#4444FF"; // Blue
-            }
-            else if (numberOfAsterisks >= 2)
-            {
-                asteriskColor = "#00FF00"; // Green
+                symbols = new string('◆', score - 9);
             }
             else
             {
-                asteriskColor = "#777777"; // Grey
+                symbols = new string('*', score);
             }
 
-            string asteriskText = $"<color={asteriskColor}>{asterisks}</color>";
-            return asteriskText;
+            string color;
+            if (score >= 10)
+            {
+                color = "#FF0000"; // Red
+            }
+            else if (score >= 8)
+            {
+                color = "#FFA500"; // Orange
+            }
+            else if (score >= 6)
+            {
+                color = "#CC00CC"; // Purple
+            }
+            else if (score >= 4)
+            {
+                color = "#4444FF"; // Blue
+            }
+            else if (score >= 2)
+            {
+                color = "#00FF00"; // Green
+            }
+            else
+            {
+                color = "#777777"; // Grey
+            }
+
+            string suffixTxt = $"<color={color}>{symbols}</color>";
+            return suffixTxt;
         }
     }
 
