@@ -48,6 +48,7 @@
     <Compile Include="EnchantmentEffects\ModifySkillLevel.cs" />
     <Compile Include="EnchantmentEffects\ModifyAttackSpeed.cs" />
     <Compile Include="EnchantmentEffects\ModifyEtir.cs" />
+    <Compile Include="EnchantmentEffects\ModifyStagger.cs" />
     <Compile Include="Enchantment_Enchanted_Item.cs" />
     <Compile Include="Enchantment_Core.cs" />
     <Compile Include="Enchantment_Skill.cs" />

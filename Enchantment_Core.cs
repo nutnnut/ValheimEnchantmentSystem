@@ -140,10 +140,10 @@ public static class Enchantment_Core
             }
         }
 
-        private void RandomizeAndSaveEnchantedItem()
+        private void RandomizeAndSaveEnchantedItem(int bonusLineCount = 0)
         {
             cachedMultipliedStats = null;
-            List<EnchantmentEffect> effects = SyncedData.GetRandomizedMultiplier(this);
+            List<EnchantmentEffect> effects = SyncedData.GetRandomizedMultiplier(this, bonusLineCount);
             if (effects == null || effects.Count == 0)
             {
                 effects = new List<EnchantmentEffect>();
@@ -372,9 +372,9 @@ public static class Enchantment_Core
             return msg;
         }
 
-        public void EnchantReroll()
+        public void EnchantReroll(int bonusLineCount = 0)
         {
-            RandomizeAndSaveEnchantedItem();
+            RandomizeAndSaveEnchantedItem(bonusLineCount);
             Other_Mods_APIs.ApplyAPIs(this);
             ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
         }

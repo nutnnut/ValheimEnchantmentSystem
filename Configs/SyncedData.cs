@@ -316,7 +316,7 @@ public static class SyncedData
         return field != null && baseStats != null ? Convert.ToSingle(field.GetValue(baseStats)) : 0f;
     }
 
-    public static List<EnchantmentEffect> GetRandomizedMultiplier(Enchantment_Core.Enchanted en)
+    public static List<EnchantmentEffect> GetRandomizedMultiplier(Enchantment_Core.Enchanted en, int bonusLineCount = 0)
     {
         if (en?.enchantedItem?.level <= 0)
         {
@@ -336,7 +336,7 @@ public static class SyncedData
                                    .Where(f => Convert.ToDouble(f.GetValue(allStats)) != 0)
                                    .ToList();
 
-        var lineCount = 2 + (en.level / 4); // Base + Level
+        var lineCount = 2 + (en.level / 4) + bonusLineCount;
         while (UnityEngine.Random.value <= 0.5 && lineCount < possibleFields.Count) // Extra by chance
         {
             lineCount++;
@@ -493,6 +493,7 @@ public static class SyncedData
             if (damage_spirit_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>+{damage_spirit_percentage}%</color>");
             if (attack_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_attackspeed: <color=#DF745D>+{attack_speed}%</color>");
             if (movement_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_movementspeed: <color=#DF745D>+{movement_speed}%</color>");
+            if (movement_skill > 0) builder.Append($"\n<color={color}>•</color> $enchantment_movement_skill: <color=#DF745D>+{movement_skill}</color>");
             if (weapon_skill > 0) builder.Append($"\n<color={color}>•</color> $enchantment_matching_weapon_skill: <color=#FFA500>+{weapon_skill}</color>");
             if (armor > 0) builder.Append($"\n<color={color}>•</color> $item_armor: <color=#808080>+{armor}</color>");
             if (armor_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_bonusespercentarmor: <color=#808080>+{armor_percentage}%</color>");
@@ -500,6 +501,8 @@ public static class SyncedData
             if (durability_percentage > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability_percentage}%</color>");
             if (max_hp > 0) builder.Append($"\n<color={color}>•</color> $se_health: <color=#ff8080ff>+{max_hp}</color>");
             if (hp_regen > 0) builder.Append($"\n<color={color}>•</color> $se_healthregen: <color=#ff8080ff>+{hp_regen}/10s</color>");
+            if (stagger_limit_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_stagger_limit: <color=#dd9090ff>+{stagger_limit_percentage}%</color>");
+            if (stagger_recovery_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_stagger_recovery: <color=#dd9090ff>+{stagger_recovery_percentage}%</color>");
             if (max_stamina > 0) builder.Append($"\n<color={color}>•</color> $se_stamina: <color=#ffff80ff>+{max_stamina}</color>");
             if (stamina_regen > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen}/s</color>");
             if (stamina_regen_percentage > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen_percentage}%</color>");
@@ -564,16 +567,23 @@ public static class SyncedData
         [SerializeField] public HitData.DamageModifier resistance_spirit;
         [SerializeField] public int attack_speed;
         [SerializeField] public int movement_speed;
+
         [SerializeField] public int max_hp;
-        [SerializeField] public int max_stamina;
-        [SerializeField] public int max_eitr;
-        [SerializeField] public int weapon_skill;
-        [SerializeField] public int movement_skill;
         [SerializeField] public float hp_regen;
+
+        [SerializeField] public int stagger_limit_percentage;
+        [SerializeField] public int stagger_recovery_percentage;
+
+        [SerializeField] public int max_stamina;
         [SerializeField] public float stamina_regen;
         [SerializeField] public int stamina_regen_percentage;
-        [SerializeField] public int eitr_regen_percentage;
         [SerializeField] public int stamina_use_reduction_percent;
+
+        [SerializeField] public int max_eitr;
+        [SerializeField] public int eitr_regen_percentage;
+
+        [SerializeField] public int weapon_skill;
+        [SerializeField] public int movement_skill; // not implemented yet
         //api stats
         [SerializeField] public int API_backpacks_additionalrow_x;
         [SerializeField] public int API_backpacks_additionalrow_y;

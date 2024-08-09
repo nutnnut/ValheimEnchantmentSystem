@@ -21,18 +21,18 @@ namespace kg.ValheimEnchantmentSystem.EnchantmentEffects
         {
             int increase = 0;
 
-            int getSkillIncrease(SkillType[] types)
+            int getSkillIncrease(SkillType[] types, string effectName)
             {
                 int result = 0;
                 if (types.Contains(skillType))
                 {
-                    result += (int)Math.Round(player.GetTotalEnchantedValue("weapon_skill"), MidpointRounding.AwayFromZero);
+                    result += (int)Math.Round(player.GetTotalEnchantedValue(effectName), MidpointRounding.AwayFromZero);
                 }
                 return result;
             }
 
-            increase += getSkillIncrease(new[] { player.GetCurrentWeapon().m_shared.m_skillType });
-            // increase += check(new[] { SkillType.Run, SkillType.Jump, SkillType.Swim, SkillType.Sneak });
+            increase += getSkillIncrease(new[] { player.GetCurrentWeapon().m_shared.m_skillType }, "weapon_skill");
+            increase += getSkillIncrease(new[] { SkillType.Run, SkillType.Jump, SkillType.Swim, SkillType.Sneak }, "movement_skill");
 
             return increase;
         }
