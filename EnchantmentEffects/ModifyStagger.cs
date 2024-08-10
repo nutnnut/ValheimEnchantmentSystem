@@ -15,7 +15,6 @@ public static class IncreaseStaggerLimit_GetStaggerThreshold_Patch
     {
         if (__instance is Player player)
         {
-            Debug.LogWarning("Stagger: " + __result + $" +{player.GetTotalEnchantedValue("stagger_limit_percentage")}%");
             __result *= 1.0f + player.GetTotalEnchantedValue("stagger_limit_percentage") / 100f;
         }
     }

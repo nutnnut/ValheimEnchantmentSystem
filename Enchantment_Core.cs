@@ -157,7 +157,6 @@ public static class Enchantment_Core
         public override void Save()
         {
             Value = JsonConvert.SerializeObject(enchantedItem, Formatting.None);
-            Debug.Log("Saving... " + Value);
             Enchantment_VFX.UpdateGrid();
         }
 

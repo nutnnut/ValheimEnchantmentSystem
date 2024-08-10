@@ -48,9 +48,16 @@ public static class TerminalCommands
             new Terminal.ConsoleCommand("setenchant", "", (args) =>
             {
                 if (!Utils.IsDebug_Strict) return;
-                if (args.Length < 3 || !int.TryParse(args[1], out int index) || !int.TryParse(args[2], out int level) || !int.TryParse(args[3], out int bonusLineCount))
+                if (args.Length < 3 || !int.TryParse(args[1], out int index) || !int.TryParse(args[2], out int level))
                 {
-                    args.Context.AddString("Usage: setenchant <slot(1-8)> <level> <bonusLineCount>");
+                    args.Context.AddString("Usage: setenchant <slot(1-8)> <level> [bonusLineCount]");
+                    return;
+                }
+
+                int bonusLineCount = 0;
+                if (args.Length > 3 && !int.TryParse(args[3], out bonusLineCount))
+                {
+                    args.Context.AddString("Invalid bonusLineCount. It must be an integer.");
                     return;
                 }
 
@@ -79,13 +86,18 @@ public static class TerminalCommands
             new Terminal.ConsoleCommand("setenchantall", "", (args) =>
             {
                 if(!Utils.IsDebug_Strict) return;
-                if (args.Length < 2 || !int.TryParse(args[2], out int bonusLineCount))
+                if (args.Length < 2 || !int.TryParse(args[1], out int level))
                 {
-                    args.Context.AddString("Usage: setenchantall <level> <bonusLineCount>");
+                    args.Context.AddString("Usage: setenchantall <level> [bonusLineCount]");
                     return;
                 }
 
-                int level = int.Parse(args[1]);
+                int bonusLineCount = 0;
+                if (args.Length > 2 && !int.TryParse(args[2], out bonusLineCount))
+                {
+                    args.Context.AddString("Invalid bonusLineCount. It must be an integer.");
+                    return;
+                }
 
                 foreach (ItemDrop.ItemData item in Player.m_localPlayer.m_inventory.m_inventory.Where(x => SyncedData.GetReqs(x.m_dropPrefab?.name) != null))
                 {
