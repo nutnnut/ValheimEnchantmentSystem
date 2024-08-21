@@ -32,7 +32,7 @@ public static class Enchantment_Core
 
     public static IEnumerator FrameSkipEquip(ItemDrop.ItemData weapon)
     {
-        if (!Player.m_localPlayer.IsItemEquiped(weapon) || !weapon.IsWeapon()) yield break;
+        if (!Player.m_localPlayer.IsItemEquiped(weapon)) yield break;
         Player.m_localPlayer.UnequipItem(weapon);
         yield return new WaitForEndOfFrame();
         yield return new WaitForEndOfFrame();
