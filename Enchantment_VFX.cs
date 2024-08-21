@@ -88,12 +88,15 @@ public static class Enchantment_VFX
             l.range = 9f;
         }
         int original_variant = variant;
-     
+        if (isArmor && original_variant == 3)
+        {
+            variant = 0;
+        }
+
         List<Renderer> renderers = item.GetComponentsInChildren<SkinnedMeshRenderer>(true).Cast<Renderer>().Concat(item.GetComponentsInChildren<MeshRenderer>(true)).ToList();
         foreach (Renderer renderer in renderers)
         {
             List<Material> list = renderer.sharedMaterials.ToList();
-            if (isArmor && original_variant == 4) variant = 1;
             list.Add(VFXs[variant]);
             renderer.sharedMaterials = list.ToArray();
             // if (isArmor) continue;
@@ -132,9 +135,9 @@ public static class Enchantment_VFX
             if (material.name.Contains("Enchantment_VFX_Mat"))
             {
                 material.SetColor(TintColor, c * INTENSITY[variant]);
-                float speedMultiplier = variant == 4 ? 0.2f : 0.5f;
+                float speedMultiplier = original_variant == 3 ? 0.3f : 0.5f;
                 material.SetVector("_TimeScale", material.GetVector("_TimeScale") * speedMultiplier);
-                if (isArmor && original_variant == 4) material.mainTextureScale *= 0.25f;
+                if (isArmor && original_variant == 3) material.mainTextureScale *= 2f;
             }
         }
     }
