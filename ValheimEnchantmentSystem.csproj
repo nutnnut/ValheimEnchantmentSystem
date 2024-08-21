@@ -40,10 +40,13 @@
     <Compile Include="Configs\BepInEx_ConfigurationManager.cs" />
     <Compile Include="Configs\Defaults.cs" />
     <Compile Include="Configs\SyncedData.cs" />
+    <Compile Include="EnchantmentEffects\ModifyReloadSpeed.cs" />
+    <Compile Include="EnchantmentEffects\ModifyEtir.cs" />
     <Compile Include="Enchantment_Core.cs" />
     <Compile Include="Enchantment_Skill.cs" />
     <Compile Include="Enchantment_VFX.cs" />
     <Compile Include="GlobalUsings.cs" />
+    <Compile Include="EnchantmentEffects\ModifyStaminaUsage.cs" />
     <Compile Include="Items_Structures\ScrollItems.cs" />
     <Compile Include="Items_Structures\BuildPieces.cs" />
     <Compile Include="Managers\AnimationSpeedManager.cs" />
@@ -53,7 +56,9 @@
     <Compile Include="Misc\DiscordWebhook.cs" />
     <Compile Include="Misc\External_AsmLoad.cs" />
     <Compile Include="Other_Mods_APIs.cs" />
+    <Compile Include="EnchantmentEffects\PlayerExtension.cs" />
     <Compile Include="StatsPanel.cs" />
+    <Compile Include="EnchantmentEffects\TooltipPatch.cs" />
     <Compile Include="UI\InfoUI.cs" />
     <Compile Include="UI\MainUI.cs" />
     <Compile Include="UI\NotificationsUI.cs" />
@@ -246,6 +251,9 @@
     <Reference Include="assembly_valheim">
       <HintPath>Libs\assembly_valheim.dll</HintPath>
     </Reference>
+    <Reference Include="assembly_valheim_publicized">
+      <HintPath>..\..\SteamLibrary\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\assembly_valheim_publicized.dll</HintPath>
+    </Reference>
     <Reference Include="BepInEx">
       <HintPath>Libs\BepInEx.dll</HintPath>
     </Reference>
@@ -256,6 +264,9 @@
       <HintPath>Libs\ItemDataManager.dll</HintPath>
     </Reference>
     <Reference Include="Jewelcrafting">
+      <HintPath>Libs\JewelcraftingAPI.dll</HintPath>
+    </Reference>
+    <Reference Include="JewelcraftingAPI">
       <HintPath>Libs\JewelcraftingAPI.dll</HintPath>
     </Reference>
     <Reference Include="netstandard" />
@@ -287,6 +298,9 @@
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>Libs\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.JSONSerializeModule">
+      <HintPath>Libs\UnityEngine.JSONSerializeModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.ParticleSystemModule">
       <HintPath>Libs\UnityEngine.ParticleSystemModule.dll</HintPath>
     </Reference>
@@ -311,7 +325,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="Copy" AfterTargets="ILRepack">
-    <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll&quot;" />
+    <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Users\NuTNNuT\AppData\Roaming\r2modmanPlus-local\Valheim\profiles\enhancesystem\BepInEx\plugins\$(AssemblyName).dll&quot;" />
     <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll&quot;" />
     <Exec Command="pdb2mdb.exe &quot;$(TargetDir)$(AssemblyName).dll&quot;" />
     <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />

@@ -1,5 +1,6 @@
 ﻿using BepInEx.Bootstrap;
 using ItemDataManager;
+using ItemManager;
 using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Configs;
 using kg.ValheimEnchantmentSystem.Misc;
@@ -41,6 +42,9 @@ public static class VES_UI
     private static Transform UseBless_Transform;
     private static Image UseBless_Icon;
 
+    private static Transform Reroll_Transform;
+    private static Image Reroll_Icon;
+
     private static Transform Start_Transform;
     private static Text Start_Text;
 
@@ -54,6 +58,7 @@ public static class VES_UI
     private static float _itemStartX, _scrollStartX;
     private static float _startY;
     private static bool _useBless;
+    private static bool _reroll;
     private static float _fillDistance;
     private static ItemDrop.ItemData _currentItem;
     private static bool _enchantProcessing;
@@ -106,6 +111,12 @@ public static class VES_UI
         UseBless_Transform.Find("Text").GetComponent<Text>().text = "$enchantment_usebless".Localize();
         UseBless_Transform.Find("Text").GetComponent<Text>().color = Color.yellow;
 
+        CreateRerollElement();
+        Reroll_Icon = Reroll_Transform.Find("Icon").GetComponent<Image>();
+        Reroll_Transform.Find("Text").GetComponent<Text>().text = "$enchantment_reroll".Localize();
+        Reroll_Transform.Find("Text").GetComponent<Text>().color = Color.magenta;
+        Reroll_Transform.localPosition = new Vector3(UseBless_Transform.localPosition.x, UseBless_Transform.localPosition.y - 30, UseBless_Transform.localPosition.z);
+
         Start_Transform = UI.transform.Find("Canvas/Background/Start");
         Start_Text = Start_Transform.Find("Text").GetComponent<Text>();
 
@@ -126,6 +137,11 @@ public static class VES_UI
             PlayClick();
             UseBless_ButtonClick();
         });
+        Reroll_Transform.GetComponent<Button>().onClick.AddListener(() =>
+        {
+            PlayClick();
+            Reroll_ButtonClick();
+        });
         Start_Transform.GetComponent<Button>().onClick.AddListener(() =>
         {
             PlayClick();
@@ -140,6 +156,14 @@ public static class VES_UI
         Default();
     }
 
+    public static void CreateRerollElement()
+    {
+        // Duplicate the UseBless GameObject
+        GameObject Reroll_Object = UnityEngine.Object.Instantiate(UseBless_Transform.gameObject, UseBless_Transform.parent);
+        Reroll_Object.name = "Reroll";
+        Reroll_Transform = Reroll_Object.transform;
+    }
+
     private static void Start_ButtonClick()
     {
         if (_currentItem == null || !Player.m_localPlayer ||
@@ -152,8 +176,10 @@ public static class VES_UI
         if (_shouldReselect)
         {
             bool oldUseBless = _useBless;
+            bool oldReroll = _reroll;
             SelectItem(_currentItem);
             if (_useBless != oldUseBless) UseBless_ButtonClick();
+            if (_reroll != oldReroll) Reroll_ButtonClick();
             PlayClick();
             return;
         }
@@ -165,8 +191,10 @@ public static class VES_UI
             _enchantTimer = 0;
 
             bool oldUseBless = _useBless;
+            bool oldReroll = _reroll;
             SelectItem(_currentItem);
             if (_useBless != oldUseBless) UseBless_ButtonClick();
+            if (_reroll != oldReroll) Reroll_ButtonClick();
             AUsrc.Stop();
         }
         else
@@ -198,6 +226,7 @@ public static class VES_UI
             Scroll_Trail.material.SetFloat(Speed, 1f);
 
             UseBless_Transform.gameObject.SetActive(false);
+            Reroll_Transform.gameObject.SetActive(false);
 
             Item_Text.text = "";
             Scroll_Text.text = "";
@@ -263,7 +292,15 @@ public static class VES_UI
             Progress_Transform.gameObject.SetActive(false);
 
             Enchantment_Core.Enchanted en = _currentItem.Data().GetOrCreate<Enchantment_Core.Enchanted>();
-            bool enchanted = en.Enchant(_useBless, out string msg);
+            bool enchanted;
+            string msg;
+            if (_reroll)
+            {
+                enchanted = en.Reroll(_useBless, out msg);
+            } else
+            {
+                enchanted = en.Enchant(_useBless, out msg);
+            }
 
             Item_Text.text = msg;
             Item_Text.color = enchanted ? Color.green : Color.red;
@@ -346,7 +383,11 @@ public static class VES_UI
         UseBless_Transform.gameObject.SetActive(false);
         UseBless_Icon.gameObject.SetActive(false);
         _useBless = false;
-        
+
+        Reroll_Transform.gameObject.SetActive(false);
+        Reroll_Icon.gameObject.SetActive(false);
+        _reroll = false;
+
         Start_Transform.gameObject.SetActive(false);
 
         Progress_Transform.gameObject.SetActive(false);
@@ -387,6 +428,36 @@ public static class VES_UI
         
     }
 
+    private static void Reroll_ButtonClick()
+    {
+        if (_currentItem == null) return;
+        _reroll = !_reroll;
+        Reroll_Icon.gameObject.SetActive(_reroll);
+
+        SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(_currentItem.m_dropPrefab?.name);
+
+        SyncedData.SingleReq singleReq = _useBless ? reqs.blessed_enchant_prefab : reqs.enchant_prefab;
+        if (singleReq.IsValid())
+        {
+            GameObject enchant_item = ZNetScene.instance.GetPrefab(singleReq.prefab);
+            Scroll_Text.text = enchant_item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name.Localize() + " <color=yellow>x" + singleReq.amount + "</color>";
+            Scroll_Text.color = Utils.CustomCountItemsNoLevel(singleReq.prefab) >= singleReq.amount ? Color.white : Color.red;
+            Scroll_Icon.sprite = enchant_item.GetComponent<ItemDrop>().m_itemData.GetIcon();
+            Scroll_Trail.gameObject.SetActive(true);
+            Scroll_Trail.color = _useBless ? new Color(1f, 1f, 0f, 0.8f) : new Color(1f, 1f, 1f, 0.8f);
+
+            UpdateChanceText();
+        }
+        else
+        {
+            Scroll_Text.text = "$enchantment_noenchantitems".Localize();
+            Scroll_Text.color = Color.red;
+            Scroll_Icon.sprite = Default_QuestionMark;
+            Scroll_Trail.gameObject.SetActive(false);
+            Scroll_Trail.color = new Color(1f, 1f, 1f, 0.8f);
+        }
+    }
+
     private static void SelectItem(ItemDrop.ItemData item)
     {
         if (!IsVisible() || _enchantProcessing || item == null) return;
@@ -407,7 +478,7 @@ public static class VES_UI
         if (enchantSkillLvl < reqs.required_skill) return;
         
         Enchantment_Core.Enchanted en = item.Data().Get<Enchantment_Core.Enchanted>();
-        if(en && en!.GetEnchantmentChance() <= 0) return;
+        if(en && en!.GetEnchantmentChance() <= 0 && en!.GetRerollChance() <= 0) return;
 
         _currentItem = item;
 
@@ -422,11 +493,9 @@ public static class VES_UI
         {
             string c = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
             Color cColor = c.ToColorAlpha();
-            itemName += $" (<color={c.IncreaseColorLight()}>+{en.level}</color>)";
+            itemName += $" (<color={c.IncreaseColorLight()}>+{en.level}{en.GenerateAsteriskSuffix()}</color>)";
             Item_Trail.color = cColor;
-            double chance = (en.GetEnchantmentChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
-            if(chance > 100) chance = 100;
-            Chance_Text.text = $"{chance}%";
+            UpdateChanceText();
         }
         else
         {
@@ -434,15 +503,15 @@ public static class VES_UI
             Item_Trail.color = new Color(1f, 1f, 1f, 0.8f);
             Chance_Text.text = "100%";
         }
-        
-        
 
         Item_Text.text = itemName;
         Item_Icon.sprite = item.GetIcon();
 
         UseBless_Transform.gameObject.SetActive(true);
         UseBless_Icon.gameObject.SetActive(false);
-        
+
+        Reroll_Transform.gameObject.SetActive(en?.level > 0);
+        Reroll_Icon.gameObject.SetActive(false);
 
         RectTransform Scroll_Rect = Scroll_Transform.GetComponent<RectTransform>();
         Scroll_Rect.anchoredPosition = new Vector2(_scrollStartX, _startY);
@@ -465,6 +534,23 @@ public static class VES_UI
             Scroll_Icon.sprite = Default_QuestionMark;
             Scroll_Trail.gameObject.SetActive(false);
             Scroll_Trail.color = new Color(1f, 1f, 1f, 0.8f);
+        }
+    }
+
+    private static void UpdateChanceText()
+    {
+        Enchantment_Core.Enchanted en = _currentItem.Data().Get<Enchantment_Core.Enchanted>();
+        if (_reroll)
+        {
+            double chance = (en.GetRerollChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
+            if (chance > 100) chance = 100;
+            Chance_Text.text = $"{chance}%";
+        }
+        else
+        {
+            double chance = (en.GetEnchantmentChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
+            if (chance > 100) chance = 100;
+            Chance_Text.text = $"{chance}%";
         }
     }
 

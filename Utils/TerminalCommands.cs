@@ -14,18 +14,73 @@ public static class TerminalCommands
         [UsedImplicitly]
         private static void Postfix(Terminal __instance)
         {
+            new Terminal.ConsoleCommand("checkenchant", "", (args) =>
+            {
+                if (!Utils.IsDebug_Strict) return;
+                if (args.Length < 2)
+                {
+                    args.Context.AddString("Usage: checkenchant <slot(1-8)>");
+                    return;
+                }
+
+                if (!int.TryParse(args[1], out int index))
+                {
+                    args.Context.AddString("Invalid arguments. Usage: checkenchant <slot(1-8)>");
+                    return;
+                }
+
+                ItemDrop.ItemData item = Player.m_localPlayer.GetInventory().GetItemAt(index - 1, 0);
+                if (item == null || !item.m_dropPrefab)
+                {
+                    args.Context.AddString($"No item found at index {index}.");
+                    return;
+                }
+
+                Enchantment_Core.Enchanted en = item.Data().GetOrCreate<Enchantment_Core.Enchanted>();
+                if (!en.IsEnchantablePrefab())
+                {
+                    args.Context.AddString($"{item.m_dropPrefab.name} is not Enchantable.");
+                    return;
+                }
+                args.Context.AddString("Floats: " + en.randomizedFloat.SerializeJson());
+                // ValheimEnchantmentSystem._thistype.StartCoroutine(Enchantment_Core.FrameSkipEquip(item));
+            });
+
             new Terminal.ConsoleCommand("setenchant", "", (args) =>
             {
-                if(!Utils.IsDebug_Strict) return;
-                int level = int.Parse(args[1]);
-                ItemDrop.ItemData weapon = Player.m_localPlayer.GetCurrentWeapon();
-                if(weapon == null || !weapon.m_dropPrefab) return;
-                Enchantment_Core.Enchanted en = weapon.Data().GetOrCreate<Enchantment_Core.Enchanted>();
+                if (!Utils.IsDebug_Strict) return;
+                if (args.Length < 3)
+                {
+                    args.Context.AddString("Usage: setenchant <slot(1-8)> <level>");
+                    return;
+                }
+
+                if (!int.TryParse(args[1], out int index) || !int.TryParse(args[2], out int level))
+                {
+                    args.Context.AddString("Invalid arguments. Usage: setenchant <slot(1-8)> <level>");
+                    return;
+                }
+
+                ItemDrop.ItemData item = Player.m_localPlayer.GetInventory().GetItemAt(index - 1, 0);
+                if (item == null || !item.m_dropPrefab)
+                {
+                    args.Context.AddString($"No item found at index {index}.");
+                    return;
+                }
+
+                args.Context.AddString($"Enchanting {item.m_dropPrefab.name}.");
+
+                Enchantment_Core.Enchanted en = item.Data().GetOrCreate<Enchantment_Core.Enchanted>();
+                if (!en.IsEnchantablePrefab())
+                {
+                    args.Context.AddString($"{item.m_dropPrefab.name} is not Enchantable.");
+                    return;
+                }
                 en.level = level;
-                en.Save();
-                Chat.instance.m_hideTimer = 0f;
-                Chat.instance.AddString("Enchantment level set to " + level);
-                ValheimEnchantmentSystem._thistype.StartCoroutine(Enchantment_Core.FrameSkipEquip(weapon));
+                en.EnchantReroll();
+                args.Context.AddString("Enchantment level set to " + level);
+                args.Context.AddString("Floats: " + en.randomizedFloat.SerializeJson());
+                ValheimEnchantmentSystem._thistype.StartCoroutine(Enchantment_Core.FrameSkipEquip(item));
             });
             
             new Terminal.ConsoleCommand("setenchantall", "", (args) =>
@@ -37,7 +92,7 @@ public static class TerminalCommands
                 {
                     Enchantment_Core.Enchanted en = item.Data().GetOrCreate<Enchantment_Core.Enchanted>();
                     en.level = level;
-                    en.Save();
+                    en.EnchantReroll();
                 }
             });
         }
