@@ -54,6 +54,8 @@ public static class VES_UI
     
     private static Transform Chance_Transform;
     private static Text Chance_Text;
+    private static Transform Destroy_Chance_Transform; // chance to destroy (or downgrade, depending on config)
+    private static Text Destroy_Chance_Text;
 
     private static float _itemStartX, _scrollStartX;
     private static float _startY;
@@ -110,12 +112,13 @@ public static class VES_UI
         UseBless_Icon = UseBless_Transform.Find("Icon").GetComponent<Image>();
         UseBless_Transform.Find("Text").GetComponent<Text>().text = "$enchantment_usebless".Localize();
         UseBless_Transform.Find("Text").GetComponent<Text>().color = Color.yellow;
+        UseBless_Transform.localPosition = new Vector3(UseBless_Transform.localPosition.x - 30, UseBless_Transform.localPosition.y, UseBless_Transform.localPosition.z);
 
-        CreateRerollElement();
+        Reroll_Transform = DuplicateTransform(UseBless_Transform, "Reroll");
         Reroll_Icon = Reroll_Transform.Find("Icon").GetComponent<Image>();
         Reroll_Transform.Find("Text").GetComponent<Text>().text = "$enchantment_reroll".Localize();
         Reroll_Transform.Find("Text").GetComponent<Text>().color = Color.magenta;
-        Reroll_Transform.localPosition = new Vector3(UseBless_Transform.localPosition.x, UseBless_Transform.localPosition.y - 30, UseBless_Transform.localPosition.z);
+        Reroll_Transform.localPosition = new Vector3(Reroll_Transform.localPosition.x + 30, Reroll_Transform.localPosition.y, Reroll_Transform.localPosition.z);
 
         Start_Transform = UI.transform.Find("Canvas/Background/Start");
         Start_Text = Start_Transform.Find("Text").GetComponent<Text>();
@@ -126,7 +129,13 @@ public static class VES_UI
 
         Chance_Transform = UI.transform.Find("Canvas/Background/Chance");
         Chance_Text = Chance_Transform.Find("Text").GetComponent<Text>();
-        
+        Chance_Transform.localPosition = new Vector3(Chance_Transform.localPosition.x - 30, Chance_Transform.localPosition.y, Chance_Transform.localPosition.z);
+
+        Destroy_Chance_Transform = DuplicateTransform(Chance_Transform, "DestroyChance");
+        Destroy_Chance_Text = Destroy_Chance_Transform.Find("Text").GetComponent<Text>();
+        Destroy_Chance_Text.color = Color.red;
+        Destroy_Chance_Transform.localPosition = new Vector3(Destroy_Chance_Transform.localPosition.x + 30, Destroy_Chance_Transform.localPosition.y, Destroy_Chance_Transform.localPosition.z);
+
         _itemStartX = Item_Transform.GetComponent<RectTransform>().anchoredPosition.x;
         _scrollStartX = Scroll_Transform.GetComponent<RectTransform>().anchoredPosition.x;
         _startY = Scroll_Transform.GetComponent<RectTransform>().anchoredPosition.y;
@@ -156,12 +165,11 @@ public static class VES_UI
         Default();
     }
 
-    public static void CreateRerollElement()
+    public static Transform DuplicateTransform(Transform UseBless_Transform, string asName)
     {
-        // Duplicate the UseBless GameObject
-        GameObject Reroll_Object = UnityEngine.Object.Instantiate(UseBless_Transform.gameObject, UseBless_Transform.parent);
-        Reroll_Object.name = "Reroll";
-        Reroll_Transform = Reroll_Object.transform;
+        GameObject newObject = UnityEngine.Object.Instantiate(UseBless_Transform.gameObject, UseBless_Transform.parent);
+        newObject.name = asName;
+        return newObject.transform;
     }
 
     private static void Start_ButtonClick()
@@ -221,7 +229,8 @@ public static class VES_UI
             Item_Visual.color = Color.clear;
             Scroll_Visual.color = Color.clear;
             Chance_Transform.gameObject.SetActive(false);
-            
+            Destroy_Chance_Transform.gameObject.SetActive(false);
+
             Item_Trail.material.SetFloat(Speed, 1f);
             Scroll_Trail.material.SetFloat(Speed, 1f);
 
@@ -292,6 +301,7 @@ public static class VES_UI
             Progress_Transform.gameObject.SetActive(false);
 
             Enchantment_Core.Enchanted en = _currentItem.Data().GetOrCreate<Enchantment_Core.Enchanted>();
+            int levelBefore = en.level;
             bool enchanted;
             string msg;
             if (_reroll)
@@ -303,8 +313,8 @@ public static class VES_UI
             }
 
             Item_Text.text = msg;
-            Item_Text.color = enchanted ? Color.green : Color.red;
-            Item_Visual.color = enchanted ? Color.green : Color.red;
+            Item_Text.color = enchanted ? Color.green : en.level < levelBefore ? Color.red : Color.yellow;
+            Item_Visual.color = enchanted ? Color.green : en.level < levelBefore ? Color.red : Color.yellow;
             Color c = SyncedData.GetColor(en, out _, true).IncreaseColorLight().ToColorAlpha();
             Item_Trail.color = c;
             GameObject uifx = UnityEngine.Object.Instantiate(VFX1, Item_Transform.transform);
@@ -397,6 +407,7 @@ public static class VES_UI
         Progress_VFX.GetComponent<ParticleSystem>().startColor = Color.clear;
         
         Chance_Transform.gameObject.SetActive(false);
+        Destroy_Chance_Transform.gameObject.SetActive(false);
     }
 
     private static void UseBless_ButtonClick()
@@ -416,6 +427,7 @@ public static class VES_UI
             Scroll_Icon.sprite = enchant_item.GetComponent<ItemDrop>().m_itemData.GetIcon();
             Scroll_Trail.gameObject.SetActive(true);
             Scroll_Trail.color = _useBless ? new Color(1f,1f,0f,0.8f) : new Color(1f, 1f, 1f, 0.8f);
+            UpdateChanceText();
         }
         else
         {
@@ -431,7 +443,12 @@ public static class VES_UI
     private static void Reroll_ButtonClick()
     {
         if (_currentItem == null) return;
+        Enchantment_Core.Enchanted en = _currentItem.Data().Get<Enchantment_Core.Enchanted>();
         _reroll = !_reroll;
+        if (en.GetEnchantmentChance() <= 0) // For max level, only reroll is allowed
+        {
+            _reroll = true;
+        }
         Reroll_Icon.gameObject.SetActive(_reroll);
 
         SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(_currentItem.m_dropPrefab?.name);
@@ -488,7 +505,6 @@ public static class VES_UI
         Item_Transform.localScale = Vector3.one;
         string itemName = item.m_shared.m_name.Localize();
         Item_Trail.gameObject.SetActive(true);
-        Chance_Transform.gameObject.SetActive(true);
         if (en)
         {
             string c = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
@@ -502,16 +518,24 @@ public static class VES_UI
             itemName += " (<color=#FFFFFF>+0</color>)";
             Item_Trail.color = new Color(1f, 1f, 1f, 0.8f);
             Chance_Text.text = "100%";
+            Destroy_Chance_Text.text = "<color=yellow>0%</color>";
         }
+        Chance_Transform.gameObject.SetActive(true);
+        Destroy_Chance_Transform.gameObject.SetActive(true);
 
         Item_Text.text = itemName;
         Item_Icon.sprite = item.GetIcon();
 
-        UseBless_Transform.gameObject.SetActive(true);
+        UseBless_Transform.gameObject.SetActive(en?.level > 0);
         UseBless_Icon.gameObject.SetActive(false);
 
         Reroll_Transform.gameObject.SetActive(en?.level > 0);
         Reroll_Icon.gameObject.SetActive(false);
+
+        if (en?.GetEnchantmentChance() <= 0) // max level
+        {
+            Reroll_ButtonClick();
+        }
 
         RectTransform Scroll_Rect = Scroll_Transform.GetComponent<RectTransform>();
         Scroll_Rect.anchoredPosition = new Vector2(_scrollStartX, _startY);
@@ -540,18 +564,25 @@ public static class VES_UI
     private static void UpdateChanceText()
     {
         Enchantment_Core.Enchanted en = _currentItem.Data().Get<Enchantment_Core.Enchanted>();
+        double success;
         if (_reroll)
         {
-            double chance = (en.GetRerollChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
-            if (chance > 100) chance = 100;
-            Chance_Text.text = $"{chance}%";
+            success = (en.GetRerollChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
         }
         else
         {
-            double chance = (en.GetEnchantmentChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
-            if (chance > 100) chance = 100;
-            Chance_Text.text = $"{chance}%";
+            success = (en.GetEnchantmentChance() + SyncedData.GetAdditionalEnchantmentChance()).RoundOne();
         }
+
+        if (success > 100) success = 100;
+        Chance_Text.text = $"{success}%";
+        double destroy = _useBless ? 0 : en.GetDestroyChance();
+        double destroy_total = (100 - success) / 100f * destroy;
+        double nochange = 100 - success - destroy_total;
+
+        string nochangetxt = $"<color=yellow>{nochange}%</color>";
+        string destroytxt = destroy_total > 0 ? $"\n{destroy_total}%" : "";
+        Destroy_Chance_Text.text = $"{nochangetxt}{destroytxt}";
     }
 
     private static void Show()

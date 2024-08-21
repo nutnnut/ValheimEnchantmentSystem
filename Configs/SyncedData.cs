@@ -6,6 +6,8 @@ using AutoISP;
 using static PrivilegeManager;
 using UnityEngine;
 using ItemManager;
+using fastJSON;
+using static fastJSON.Reflection;
 
 namespace kg.ValheimEnchantmentSystem.Configs;
 
@@ -276,7 +278,7 @@ public static class SyncedData
             {
                 chanceData.success = overrideChance.success;
                 chanceData.destroy = overrideChance.destroy;
-                chanceData.reroll = overrideChance.reroll != 0 ? overrideChance.reroll : 100;
+                chanceData.reroll = overrideChance.reroll;
                 return chanceData;
             }
         }
@@ -285,7 +287,7 @@ public static class SyncedData
         {
             chanceData.success = syncedChance.success;
             chanceData.destroy = syncedChance.destroy;
-            chanceData.reroll = syncedChance.reroll != 0 ? syncedChance.reroll : 100;
+            chanceData.reroll = syncedChance.reroll;
             return chanceData;
         }
 
@@ -294,91 +296,79 @@ public static class SyncedData
 
     public static Stat_Data GetStatIncrease(Enchantment_Core.Enchanted en)
     {
-        if (en.level == 0) return null;
+        if (en == null || en.enchantedItem == null || en.enchantedItem.level == 0) return null;
+        int level = en.enchantedItem.level;
+
         string dropPrefab = en.Item.m_dropPrefab?.name;
         if (dropPrefab != null && OPTIMIZED_Overrides_EnchantmentStats.TryGetValue(dropPrefab, out Dictionary<int, Stat_Data> overriden))
         {
-            return overriden.TryGetValue(en.level, out Stat_Data overrideChance) ? overrideChance : null;
+            return overriden.TryGetValue(level, out Stat_Data overrideChance) ? overrideChance : null;
         }
 
         Dictionary<int, Stat_Data> target = en.Item.IsWeapon() ? Synced_EnchantmentStats_Weapons.Value : Synced_EnchantmentStats_Armor.Value;
-        return target.TryGetValue(en.level, out Stat_Data increase) ? increase : null;
+        return target.TryGetValue(level, out Stat_Data increase) ? increase : null;
     }
 
-    public static Stat_Data_Float GetRandomizedMultiplier(Enchantment_Core.Enchanted en)
+    public static float GetStatIncrease(Enchantment_Core.Enchanted en, string effectType)
     {
-        if (en?.level <= 0)
+        var field = typeof(Stat_Data).GetField(effectType, BindingFlags.Public | BindingFlags.Instance);
+        var baseStats = SyncedData.GetStatIncrease(en);
+        return field != null && baseStats != null ? Convert.ToSingle(field.GetValue(baseStats)) : 0f;
+    }
+
+    public static List<EnchantmentEffect> GetRandomizedMultiplier(Enchantment_Core.Enchanted en, int bonusLineCount = 0)
+    {
+        if (en?.enchantedItem?.level <= 0)
         {
             Debug.LogWarning("VES No floats because item null or lv0");
-            return new Stat_Data_Float();
+            return new List<EnchantmentEffect>();
         }
         var allStats = GetStatIncrease(en);
         if (allStats == null)
         {
-            Debug.LogWarning("VES No possible stats found while randomizing, check your EnchantmentStats config yml");
-            return new Stat_Data_Float();
+            Debug.LogError("VES No possible stats found while randomizing, check your EnchantmentStats config yml");
+            return new List<EnchantmentEffect>();
         }
-        Debug.LogWarning("VES loading possible fields...");
         var selectedStats = new Stat_Data();
-        var multipliers = new Stat_Data_Float();
-        var fields = typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance)
+        var multipliers = new List<EnchantmentEffect>();
+        var possibleFields = typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance)
                                    .Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float))
                                    .Where(f => Convert.ToDouble(f.GetValue(allStats)) != 0)
                                    .ToList();
 
-        var lineCount = 2 + (en.level / 4); // Base + Level
-        while (UnityEngine.Random.value <= 0.5 && lineCount < fields.Count) // Extra by chance
+        var lineCount = 2 + (en.level / 4) + bonusLineCount;
+        while (UnityEngine.Random.value <= 0.5 && lineCount < possibleFields.Count) // Extra by chance
         {
             lineCount++;
         }
 
         // Apply pity system
-        int oldLineCount = 0;
-        try
-        {
-            oldLineCount = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
-                                                 .Count(f => Convert.ToSingle(f.GetValue(en.randomizedFloat)) != 0);
-        }
-        catch (Exception ex)
-        {
-            oldLineCount = 0;
-            if (en.level > 1)
-            {
-                Debug.LogWarning($"Error counting fields with non-zero values in Stat_Data_Float: {ex}");
-            }
-        }
-        lineCount = Mathf.Clamp(lineCount, oldLineCount - 1, fields.Count);
+        int oldLineCount = en.enchantedItem.effects.Count;
+        lineCount = Mathf.Clamp(lineCount, oldLineCount - 1, possibleFields.Count);
 
-        var randomFields = fields.OrderBy(f => UnityEngine.Random.value).Take(lineCount).ToList();
+        // 30% 0.5
+        // 30% 0.75
+        // 30% 1.0
+        // 3.33% 1.0
+        // 3.33% 1.5
+        // 3.33% 2.0
+        float minMult = 0.5f;
+        float maxMult = 1.0f;
+        float interval = 0.25f;
+        float bonusMultiplierChance = 0.1f;
+        float bonusMultiplier = 2.0f;
+
+        var randomFields = possibleFields.OrderBy(f => UnityEngine.Random.value).Take(lineCount).ToList();
         foreach (var field in randomFields)
         {
             var originalValue = Convert.ToDouble(field.GetValue(allStats));
-
-            float interval = 0.25f;
-            float minMult = 0.5f;
-            float maxMult = 1.0f;
-            float bonusMultiplierChance = 0.1f;
-            float bonusMultiplier = 2.0f;
-            float randomMultiplier = Mathf.Round(UnityEngine.Random.Range(minMult / interval, maxMult / interval)) * interval;
-
-            // 30% 0.5
-            // 30% 0.75
-            // 30% 1.0
-            // 3.33% 1.0
-            // 3.33% 1.5
-            // 3.33% 2.0
+            float floatMultiplier = Mathf.Round(UnityEngine.Random.Range(minMult / interval, maxMult / interval)) * interval;
             if (UnityEngine.Random.value <= bonusMultiplierChance) // 10% chance to get double bonus
             {
-                randomMultiplier *= bonusMultiplier;
+                floatMultiplier *= bonusMultiplier;
             }
 
-            var multiplierField = typeof(Stat_Data_Float).GetField(field.Name);
-            if (multiplierField == null)
-            {
-                Debug.LogError("VES multiplierField not found, skipping: " + field.Name);
-                continue;
-            }
-            multiplierField.SetValue(multipliers, randomMultiplier);
+            multipliers.Add(new EnchantmentEffect(field.Name, floatMultiplier));
         }
 
         return multipliers;
@@ -503,6 +493,7 @@ public static class SyncedData
             if (damage_spirit_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>+{damage_spirit_percentage}%</color>");
             if (attack_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_attackspeed: <color=#DF745D>+{attack_speed}%</color>");
             if (movement_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_movementspeed: <color=#DF745D>+{movement_speed}%</color>");
+            if (movement_skill > 0) builder.Append($"\n<color={color}>•</color> $enchantment_movement_skill: <color=#DF745D>+{movement_skill}</color>");
             if (weapon_skill > 0) builder.Append($"\n<color={color}>•</color> $enchantment_matching_weapon_skill: <color=#FFA500>+{weapon_skill}</color>");
             if (armor > 0) builder.Append($"\n<color={color}>•</color> $item_armor: <color=#808080>+{armor}</color>");
             if (armor_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_bonusespercentarmor: <color=#808080>+{armor_percentage}%</color>");
@@ -510,9 +501,12 @@ public static class SyncedData
             if (durability_percentage > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability_percentage}%</color>");
             if (max_hp > 0) builder.Append($"\n<color={color}>•</color> $se_health: <color=#ff8080ff>+{max_hp}</color>");
             if (hp_regen > 0) builder.Append($"\n<color={color}>•</color> $se_healthregen: <color=#ff8080ff>+{hp_regen}/10s</color>");
+            if (stagger_limit_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_stagger_limit: <color=#dd9090ff>+{stagger_limit_percentage}%</color>");
+            if (stagger_recovery_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_stagger_recovery: <color=#dd9090ff>+{stagger_recovery_percentage}%</color>");
             if (max_stamina > 0) builder.Append($"\n<color={color}>•</color> $se_stamina: <color=#ffff80ff>+{max_stamina}</color>");
             if (stamina_regen > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen}/s</color>");
-            if (stamina_use_reduction_percent > 0) builder.Append($"\n<color={color}>•</color> $item_staminause: <color=#ffff80ff>-{stamina_use_reduction_percent}%</color>");
+            if (stamina_regen_percentage > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen_percentage}%</color>");
+            if (stamina_use_reduction_percent > 0) builder.Append($"\n<color={color}>•</color> $se_attackstamina: <color=#ffff80ff>-{stamina_use_reduction_percent}%</color>");
             if (max_eitr > 0) builder.Append($"\n<color={color}>•</color> $item_food_eitr: <color=#9090ffff>+{max_eitr}</color>");
             if (eitr_regen_percentage > 0) builder.Append($"\n<color={color}>•</color> $item_eitrregen_modifier: <color=#9090ffff>+{eitr_regen_percentage}%</color>");
             if (API_backpacks_additionalrow_x > 0) builder.Append($"\n<color={color}>•</color> $enchantment_backpacks_additionalrow_x: <color=#7393B3>{API_backpacks_additionalrow_x}</color>");
@@ -527,17 +521,7 @@ public static class SyncedData
 
         public string Info_Description()
         {
-            string result = "";
-            if (damage_percentage > 0)
-            {
-                result += $"\n• $enchantment_bonusespercentdamage: <color=#AF009F>+{damage_percentage}%</color>";
-            }
-            if (armor_percentage > 0)
-            {
-                result += $"\n• $enchantment_bonusespercentarmor: <color=#009FAF>+{armor_percentage}%</color>";
-            }
-            result += BuildAdditionalStats("#FFFFFF");
-            return result;
+            return BuildAdditionalStats("#FFFFFF");
         }
     }
     
@@ -583,15 +567,23 @@ public static class SyncedData
         [SerializeField] public HitData.DamageModifier resistance_spirit;
         [SerializeField] public int attack_speed;
         [SerializeField] public int movement_speed;
+
         [SerializeField] public int max_hp;
-        [SerializeField] public int max_stamina;
-        [SerializeField] public int max_eitr;
-        [SerializeField] public int weapon_skill;
-        [SerializeField] public int movement_skill;
         [SerializeField] public float hp_regen;
+
+        [SerializeField] public int stagger_limit_percentage;
+        [SerializeField] public int stagger_recovery_percentage;
+
+        [SerializeField] public int max_stamina;
         [SerializeField] public float stamina_regen;
-        [SerializeField] public int eitr_regen_percentage;
+        [SerializeField] public int stamina_regen_percentage;
         [SerializeField] public int stamina_use_reduction_percent;
+
+        [SerializeField] public int max_eitr;
+        [SerializeField] public int eitr_regen_percentage;
+
+        [SerializeField] public int weapon_skill;
+        [SerializeField] public int movement_skill; // not implemented yet
         //api stats
         [SerializeField] public int API_backpacks_additionalrow_x;
         [SerializeField] public int API_backpacks_additionalrow_y;
@@ -609,16 +601,17 @@ public static class SyncedData
             return JsonUtility.FromJson<Stat_Data>(json);
         }
 
-        public Stat_Data ApplyMultiplier(Stat_Data_Float multipliers)
+        public Stat_Data ApplyMultiplier(EnchantedItem item)
         {
             var multipliedStats = new Stat_Data();
+            if (item == null || item.effects == null) return multipliedStats;
             foreach (var field in typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
                 var baseValue = Convert.ToDouble(field.GetValue(this));
-                var multiplierField = typeof(Stat_Data_Float).GetField(field.Name);
+                var multiplierField = typeof(Stat_Data).GetField(field.Name);
                 if (multiplierField != null)
                 {
-                    var multiplier = (float)multiplierField.GetValue(multipliers);
+                    var multiplier = item.GetTotalFloat(field.Name);
                     var newValue = baseValue * multiplier;
                     if (field.FieldType == typeof(int))
                     {
@@ -631,60 +624,6 @@ public static class SyncedData
                 }
             }
             return multipliedStats;
-        }
-    }
-
-    public class Stat_Data_Float
-    {
-        public float durability = 0.0f;
-        public float durability_percentage = 0.0f;
-        public float armor_percentage = 0.0f;
-        public float armor = 0.0f;
-        public float damage_percentage = 0.0f;
-        public float damage_true = 0.0f;
-        public float damage_blunt = 0.0f;
-        public float damage_slash = 0.0f;
-        public float damage_pierce = 0.0f;
-        public float damage_chop = 0.0f;
-        public float damage_pickaxe = 0.0f;
-        public float damage_fire = 0.0f;
-        public float damage_frost = 0.0f;
-        public float damage_lightning = 0.0f;
-        public float damage_poison = 0.0f;
-        public float damage_spirit = 0.0f;
-        public float damage_true_percentage = 0.0f;
-        public float damage_blunt_percentage = 0.0f;
-        public float damage_slash_percentage = 0.0f;
-        public float damage_pierce_percentage = 0.0f;
-        public float damage_chop_percentage = 0.0f;
-        public float damage_pickaxe_percentage = 0.0f;
-        public float damage_fire_percentage = 0.0f;
-        public float damage_frost_percentage = 0.0f;
-        public float damage_lightning_percentage = 0.0f;
-        public float damage_poison_percentage = 0.0f;
-        public float damage_spirit_percentage = 0.0f;
-        public float attack_speed = 0.0f;
-        public float movement_speed = 0.0f;
-        public float max_hp = 0.0f;
-        public float max_stamina = 0.0f;
-        public float max_eitr = 0.0f;
-        public float weapon_skill = 0.0f;
-        public float movement_skill = 0.0f;
-        public float hp_regen = 0.0f;
-        public float stamina_regen = 0.0f;
-        public float stamina_use_reduction_percent;
-        public float eitr_regen_percentage = 0.0f;
-        public float API_backpacks_additionalrow_x = 0.0f;
-        public float API_backpacks_additionalrow_y = 0.0f;
-
-        public string SerializeJson()
-        {
-            return JsonUtility.ToJson(this);
-        }
-
-        public static Stat_Data_Float DeserializeJson(string json)
-        {
-            return JsonUtility.FromJson<Stat_Data_Float>(json);
         }
     }
 

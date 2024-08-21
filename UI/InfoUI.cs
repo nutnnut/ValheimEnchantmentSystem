@@ -164,11 +164,49 @@ public static class Info_UI
     private static string GenerateChancesText(Dictionary<int, SyncedData.Chance_Data> chances)
     {
         string result = "";
+
+        SyncedData.Chance_Data previousChance = new SyncedData.Chance_Data();
+        previousChance.success = 100; // lv1
+
         foreach (KeyValuePair<int, SyncedData.Chance_Data> chance in chances.OrderBy(x => x.Key))
         {
-            string success = $"{chance.Value.success}";
-            string destroy = chance.Value.destroy > 0 ? $", $enchantment_destroychance: {chance.Value.destroy}%".Localize() : "";
-            result += $"<color=yellow>• lvl{chance.Key}:</color> {success}%{destroy}\n";
+            string levelColor;
+            if (SyncedData.Synced_EnchantmentColors.Value.TryGetValue(chance.Key, out SyncedData.VFX_Data vfxData))
+            {
+                levelColor = vfxData.color.Substring(0, 7).IncreaseColorLight(); //trim alpha
+            } else
+            {
+                levelColor = "white";
+            }
+
+            var parts = new List<string>();
+            if (previousChance.success > 0)
+            {
+                string part = $"{previousChance.success}%";
+                double destroy_total = (100f - previousChance.success) * previousChance.destroy / 100f;
+                if (destroy_total > 0)
+                {
+                    part += $"/<color=red>{destroy_total}%</color>";
+                }
+                parts.Add(part);
+            }
+            if (chance.Value.reroll > 0)
+            {
+                string part = $"$enchantment_rerollchance: {chance.Value.reroll}%";
+                double destroy_reroll_total = (100f - chance.Value.reroll) * chance.Value.destroy / 100f;
+                if (destroy_reroll_total > 0)
+                {
+                    part += $"/<color=red>{destroy_reroll_total}%</color>";
+                }
+                parts.Add(part.Localize());
+            }
+
+            string joinedParts = string.Join(", ", parts);
+            if (!string.IsNullOrEmpty(joinedParts))
+            {
+                result += $"<color={levelColor}>• lvl{chance.Key}:</color> {joinedParts}\n";
+            }
+            previousChance = chance.Value;
         }
         return result;
     }

@@ -11,7 +11,7 @@ namespace kg.ValheimEnchantmentSystem.EnchantmentEffects;
 [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData),
     typeof(int), typeof(bool), typeof(float))]
 [ClientOnlyPatch]
-public class TooltipPatch
+public class PatchToolTips
 {
     [HarmonyPatch(typeof(InventoryGrid), nameof(InventoryGrid.CreateItemTooltip))]
     [ClientOnlyPatch]
@@ -100,11 +100,24 @@ public class TooltipPatch
                     __result = new Regex("(\\$item_blockarmor.*)").Replace(__result, $"$1 <color={color}>(+{(item.GetBaseBlockPower(qualityLevel) * armorPercent / 100f).RoundOne()}({armorPercent}%))</color>");
                     __result = new Regex("(\\$item_armor.*)").Replace(__result, $"$1 <color={color}>(+{(item.GetArmor(qualityLevel, item.m_worldLevel) * armorPercent / 100f).RoundOne()}({armorPercent}%))</color>");
                 }
-                int armor = stats.armor;
-                if (armor > 0)
+                if (stats.armor > 0)
                 {
-                    __result = new Regex("(\\$item_blockarmor.*)").Replace(__result, $"$1 (<color={color}>+{stats.armor}</color>)");
-                    __result = new Regex("(\\$item_armor.*)").Replace(__result, $"$1 (<color={color}>+{stats.armor}</color>)");
+                    __result = new Regex("(\\$item_blockarmor.*)").Replace(__result, $"$1 <color={color}>(+{stats.armor})</color>");
+                    __result = new Regex("(\\$item_armor.*)").Replace(__result, $"$1 <color={color}>(+{stats.armor})</color>");
+                }
+                if (stats.movement_speed > 0)
+                {
+                    var totalMovementModifier = Player.m_localPlayer.GetEquipmentMovementModifier() * 100f;
+                    bool replaced = false;
+                    __result = Regex.Replace(__result, @"(\$item_movement_modifier.*)", match =>
+                    {
+                        replaced = true;
+                        return $"{match.Value} <color={color}>+{stats.movement_speed}% ($item_total:{totalMovementModifier:+0;-0}%)</color>";
+                    });
+                    if (!replaced)
+                    {
+                        __result += $"\n<color={color}>$item_movement_modifier: +{stats.movement_speed}% ($item_total:{totalMovementModifier:+0;-0}%)</color>";
+                    }
                 }
 
                 __result += stats.BuildAdditionalStats(color);

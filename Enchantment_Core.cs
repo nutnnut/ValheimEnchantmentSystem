@@ -12,6 +12,11 @@ using Object = UnityEngine.Object;
 using TMPro;
 using static Unity.IO.LowLevel.Unsafe.AsyncReadManagerMetrics;
 using System.Reflection;
+using fastJSON;
+using Newtonsoft.Json;
+using System.Runtime.CompilerServices;
+using UnityEngine.UIElements;
+using static kg.ValheimEnchantmentSystem.Enchantment_Core;
 
 namespace kg.ValheimEnchantmentSystem;
 
@@ -39,77 +44,149 @@ public static class Enchantment_Core
             Player.m_localPlayer?.EquipItem(weapon);
     }
 
+    public static class EquipmentEffectCache
+    {
+        public static ConditionalWeakTable<Player, Dictionary<string, float?>> EquippedValues = new ConditionalWeakTable<Player, Dictionary<string, float?>>();
+
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.UnequipItem))]
+        public static class EquipmentEffectCache_Humanoid_UnequipItem_Patch
+        {
+            [UsedImplicitly]
+            public static void Prefix(Humanoid __instance)
+            {
+                if (__instance is Player player)
+                {
+                    Reset(player);
+                }
+            }
+        }
+
+        [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.EquipItem))]
+        public static class EquipmentEffectCache_Humanoid_EquipItem_Patch
+        {
+            [UsedImplicitly]
+            public static void Prefix(Humanoid __instance)
+            {
+                if (__instance is Player player)
+                {
+                    Reset(player);
+                }
+            }
+        }
+
+        public static void Reset(Player player)
+        {
+            EquippedValues.Remove(player);
+        }
+
+        public static float? Get(Player player, string effect, Func<float?> calculate)
+        {
+            var values = EquippedValues.GetOrCreateValue(player);
+            if (values.TryGetValue(effect, out float? value))
+            {
+                return value;
+            }
+
+            return values[effect] = calculate();
+        }
+    }
+
     public class Enchanted : ItemData
     {
-        public int level;
-        private SyncedData.Stat_Data cachedMultipliedStats;
-        public SyncedData.Stat_Data_Float randomizedFloat;
+        private Stat_Data cachedMultipliedStats;
 
+        public int level {
+            get
+            {
+                return enchantedItem.level;
+            }
+        }
+        private int level_legacy; // for converting older version items
+        public EnchantedItem enchantedItem = new EnchantedItem();
         public SyncedData.Stat_Data Stats
         {
             get
             {
-                if (level == 0) return null;
                 if (cachedMultipliedStats != null)
                 {
                     return cachedMultipliedStats;
                 }
-                if (randomizedFloat == null)
+                if (enchantedItem.GetTotalFloat() <= 0)
                 {
-                    Debug.LogWarning("VES Item Floats Not Found");
-                    RandomizeAndSaveFloats();
+                    if (level_legacy > enchantedItem.level)
+                    {
+                        enchantedItem.level = level_legacy;
+                        level_legacy = 0;
+                    }
+                    Debug.LogWarning("effects empty, randomizing level: " + level);
+                    if (enchantedItem.level <= 0)
+                    {
+                        enchantedItem.effects = new List<EnchantmentEffect>();
+                    }
+                    else
+                    {
+                        RandomizeAndSaveEnchantedItem();
+                    }
                 }
-                var baseStats = SyncedData.GetStatIncrease(this);
+                Stat_Data baseStats = SyncedData.GetStatIncrease(this);
                 if (baseStats == null)
                 {
                     Debug.LogError("Failed to get base stats, check config");
-                    return null;
+                    cachedMultipliedStats = new Stat_Data();
+                    return new Stat_Data();
                 }
-                cachedMultipliedStats = baseStats.ApplyMultiplier(randomizedFloat);
+                cachedMultipliedStats = baseStats.ApplyMultiplier(enchantedItem);
                 return cachedMultipliedStats;
             }
         }
 
-        private void RandomizeAndSaveFloats()
+        private void RandomizeAndSaveEnchantedItem(int bonusLineCount = 0)
         {
             cachedMultipliedStats = null;
-            randomizedFloat = SyncedData.GetRandomizedMultiplier(this);
-            if (randomizedFloat == null)
+            List<EnchantmentEffect> effects = SyncedData.GetRandomizedMultiplier(this, bonusLineCount);
+            if (effects == null || effects.Count == 0)
             {
+                effects = new List<EnchantmentEffect>();
+                //cachedMultipliedStats = new Stat_Data();
                 Debug.LogWarning("VES Failed to randomize, giving 0 empty floats");
-                randomizedFloat = new Stat_Data_Float();
             }
+            enchantedItem.effects = effects;
             Save();
         }
 
         public override void Save()
         {
-            if (randomizedFloat != null)
-            {
-                Value = $"{level}|{randomizedFloat.SerializeJson()}";
-            }
-            else
-            {
-                Value = $"{level}|";
-            }
+            Value = JsonConvert.SerializeObject(enchantedItem, Formatting.None);
             Enchantment_VFX.UpdateGrid();
         }
 
         public override void Load()
         {
             if (string.IsNullOrEmpty(Value)) return;
+            try
+            {
+                enchantedItem = JsonConvert.DeserializeObject<EnchantedItem>(Value);
+                Debug.Log("Loaded Item Level: " + enchantedItem?.level);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning("Failed to load, trying deserialize legacy");
+                Debug.LogWarning("Loading Legacy: " + Value);
+                deserializeLegacy();
+            }
+        }
+
+        private void deserializeLegacy()
+        {
+            if (string.IsNullOrEmpty(Value)) return;
             var parts = Value.Split('|');
-            if (parts.Length == 2 && int.TryParse(parts[0], out level))
-            {
-                if (!string.IsNullOrEmpty(parts[1]))
-                {
-                    randomizedFloat = SyncedData.Stat_Data_Float.DeserializeJson(parts[1]);
-                }
-            }
-            else
-            {
-                Debug.LogWarning("VES Failed to deserialize floats...");
-            }
+            int.TryParse(parts[0], out level_legacy);
+            enchantedItem = new EnchantedItem(level_legacy, new List<EnchantmentEffect>());
+        }
+
+        public int GetDestroyChance()
+        {
+            return SyncedData.GetEnchantmentChance(this).destroy;
         }
 
         public int GetRerollChance()
@@ -151,6 +228,12 @@ public static class Enchantment_Core
             return IsEnchantablePrefab();
         }
 
+        public bool CanReroll()
+        {
+            if (GetRerollChance() <= 0) return false;
+            return IsEnchantablePrefab();
+        }
+
         public bool IsEnchantablePrefab()
         {
             SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(Item.m_dropPrefab.name);
@@ -169,7 +252,7 @@ public static class Enchantment_Core
         public bool Reroll(bool safeEnchant, out string msg)
         {
             msg = "";
-            if (!CanEnchant())
+            if (!CanReroll())
             {
                 msg = "$enchantment_cannotbe".Localize();
                 return false;
@@ -181,7 +264,7 @@ public static class Enchantment_Core
                 return false;
             }
 
-            if (Random.Range(0f, 100f) <= 80f) // TODO: config chance
+            if (Random.Range(0f, 100f) <= GetRerollChance())
             {
                 string oldSuffix = GenerateAsteriskSuffix();
                 EnchantReroll();
@@ -288,22 +371,22 @@ public static class Enchantment_Core
             return msg;
         }
 
-        public void EnchantReroll()
+        public void EnchantReroll(int bonusLineCount = 0)
         {
-            RandomizeAndSaveFloats();
+            RandomizeAndSaveEnchantedItem(bonusLineCount);
             Other_Mods_APIs.ApplyAPIs(this);
             ValheimEnchantmentSystem._thistype.StartCoroutine(FrameSkipEquip(Item));
         }
 
         public void EnchantLevelUp()
         {
-            level++;
+            enchantedItem.level++;
             EnchantReroll();
         }
 
         public void EnchantLevelDown()
         {
-            level = Mathf.Max(0, level - 1);
+            enchantedItem.level = Mathf.Max(0, level - 1);
             EnchantReroll();
         }
 
@@ -315,9 +398,8 @@ public static class Enchantment_Core
             string color = SyncedData.GetColor(this, out _, true)
                 .IncreaseColorLight();
 
-            if (randomizedFloat == null)
+            if (!enchantedItem.effects.Any())
             {
-                Debug.LogError("VES Failed to get float for suffix");
                 return $" (<color={color}>+{level}</color>)";
             }
 
@@ -329,345 +411,111 @@ public static class Enchantment_Core
 
         public string GenerateAsteriskSuffix()
         {
-            if (randomizedFloat == null) return "";
-            float sumOfFloats = typeof(Stat_Data_Float).GetFields(BindingFlags.Public | BindingFlags.Instance)
-                        .Where(f => f.FieldType == typeof(float))
-                        .Sum(f => (float)f.GetValue(randomizedFloat));
+            float sumOfFloats = enchantedItem.GetTotalFloat();
 
-            int numberOfAsterisks = (int)Math.Round(Math.Max(sumOfFloats, 0), MidpointRounding.AwayFromZero);
-            string asterisks = new string('*', numberOfAsterisks);
-
-            string asteriskColor;
-            if (numberOfAsterisks >= 10)
+            int score = (int)Math.Round(Math.Max(sumOfFloats, 0), MidpointRounding.AwayFromZero);
+            string symbols;
+            if (score >= 10)
             {
-                asteriskColor = "#FF0000"; // Red
-            }
-            else if (numberOfAsterisks >= 8)
-            {
-                asteriskColor = "#FFA500"; // Orange
-            }
-            else if (numberOfAsterisks >= 6)
-            {
-                asteriskColor = "#CC00CC"; // Purple
-            }
-            else if (numberOfAsterisks >= 4)
-            {
-                asteriskColor = "#4444FF"; // Blue
-            }
-            else if (numberOfAsterisks >= 2)
-            {
-                asteriskColor = "#00FF00"; // Green
+                symbols = new string('◆', score - 9);
             }
             else
             {
-                asteriskColor = "#777777"; // Grey
+                symbols = new string('*', score);
             }
 
-            string asteriskText = $"<color={asteriskColor}>{asterisks}</color>";
-            return asteriskText;
+            string color;
+            if (score >= 10)
+            {
+                color = "#FF0000"; // Red
+            }
+            else if (score >= 8)
+            {
+                color = "#FFA500"; // Orange
+            }
+            else if (score >= 6)
+            {
+                color = "#CC00CC"; // Purple
+            }
+            else if (score >= 4)
+            {
+                color = "#4444FF"; // Blue
+            }
+            else if (score >= 2)
+            {
+                color = "#00FF00"; // Green
+            }
+            else
+            {
+                color = "#777777"; // Grey
+            }
+
+            string suffixTxt = $"<color={color}>{symbols}</color>";
+            return suffixTxt;
         }
     }
 
-    [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetBlockPower), typeof(float))]
-    [ClientOnlyPatch]
-    private static class ModifyBlockPower
-    {
-        [UsedImplicitly]
-        private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
-        {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
-            {
-                __result *= 1 + stats.armor_percentage / 100f;
-                __result += stats.armor;
-            }
-        }
-    }
-
-    [HarmonyPatch]
-    [ClientOnlyPatch]
-    private static class ModifyArmor
-    {
-        [UsedImplicitly]
-        private static MethodInfo TargetMethod()
-        {
-            return AccessTools.Method(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetArmor));
-        }
-
-        [UsedImplicitly]
-        private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
-        {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
-            {
-                __result *= 1 + stats.armor_percentage / 100f;
-                __result += stats.armor;
-            }
-        }
-    }
-
-    [HarmonyPatch]
-    [ClientOnlyPatch]
-    private static class ModifyDamage
-    {
-        [UsedImplicitly]
-        private static MethodInfo TargetMethod()
-        {
-            return AccessTools.Method(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetDamage));
-        }
-
-        [UsedImplicitly]
-        private static void Postfix(ItemDrop.ItemData __instance, ref HitData.DamageTypes __result)
-        {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
-            {
-                float rawDmg = __result.GetTotalBlockableDamage();
-                __result.Modify(1 + stats.damage_percentage / 100f);
-                __result.m_blunt += rawDmg * stats.damage_blunt_percentage / 100f + stats.damage_blunt;
-                __result.m_slash += rawDmg * stats.damage_slash_percentage / 100f + stats.damage_slash;
-                __result.m_pierce += rawDmg * stats.damage_pierce_percentage / 100f + stats.damage_pierce;
-                __result.m_fire += rawDmg * stats.damage_fire_percentage / 100f + stats.damage_fire;
-                __result.m_frost += rawDmg * stats.damage_frost_percentage / 100f + stats.damage_frost;
-                __result.m_lightning += rawDmg * stats.damage_lightning_percentage / 100f + stats.damage_lightning;
-                __result.m_poison += rawDmg * stats.damage_poison_percentage / 100f + stats.damage_poison;
-                __result.m_spirit += rawDmg * stats.damage_spirit_percentage / 100f + stats.damage_spirit;
-                __result.m_damage += rawDmg * stats.damage_true_percentage / 100f + stats.damage_true;
-                __result.m_chop += rawDmg * stats.damage_chop_percentage / 100f + stats.damage_chop;
-                __result.m_pickaxe += rawDmg * stats.damage_pickaxe_percentage / 100f + stats.damage_pickaxe;
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(Player), nameof(Player.ApplyArmorDamageMods))]
-    [ClientOnlyPatch]
-    private static class Player_ApplyArmorDamageMods_Patch
-    {
-        [UsedImplicitly]
-        private static void Postfix(Player __instance, ref HitData.DamageModifiers mods)
-        {
-            foreach (var en in __instance.EquippedEnchantments())
-            {
-                if (en.Stats is { } stats) mods.Apply(stats.GetResistancePairs());
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(Character), nameof(Character.SetMaxHealth))]
-    [ClientOnlyPatch]
-    private static class Character_SetMaxHealth_Patch
-    {
-        [UsedImplicitly]
-        private static void Prefix(Character __instance, ref float health)
-        {
-            if (__instance is Player player)
-            {
-                foreach (var en in player.EquippedEnchantments())
-                {
-                    if (en.Stats is { } stats)
-                    {
-                        health += stats.max_hp;
-                    }
-                }
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(Player), nameof(Player.SetMaxStamina))]
-    [ClientOnlyPatch]
-    private static class Player_SetMaxStamina_Patch
-    {
-        [UsedImplicitly]
-        private static void Prefix(Player __instance, ref float stamina)
-        {
-            foreach (var en in __instance.EquippedEnchantments())
-            {
-                if (en.Stats is { } stats)
-                {
-                    stamina += stats.max_stamina;
-                }
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(Player), nameof(Player.GetEquipmentMovementModifier))]
-    [ClientOnlyPatch]
-    private static class Player_UpdateMovementModifier_Patch
-    {
-        [UsedImplicitly]
-        private static void Postfix(Player __instance, ref float __result)
-        {
-            foreach (var en in __instance.EquippedEnchantments())
-            {
-                if (en.Stats is { } stats) __result += stats.movement_speed / 100f;
-            }
-        }
-    }
-
-    [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetMaxDurability), typeof(int))]
-    [ClientOnlyPatch]
-    public class ApplySkillToDurability
-    {
-        [UsedImplicitly]
-        private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
-        {
-            try
-            {
-                if (__instance?.Data().Get<Enchanted>() is not { level: > 0 } en) return;
-                if (en.level > 0 && en.Stats != null)
-                {
-                    var stats = en.Stats;
-                    __result *= 1 + stats.durability_percentage / 100f;
-                    __result += stats.durability;
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Error in ApplySkillToDurability.Postfix: {ex}");
-            }
-        }
-    }
-
-    private static double ModifyAttackSpeed(Character c, double speed)
+    public static double ModifyAttackSpeed(Character c, double speed)
     {
         if (c != Player.m_localPlayer || !c.InAttack()) return speed;
-
-        ItemDrop.ItemData weapon = Player.m_localPlayer.GetCurrentWeapon();
-        if (weapon == null) return speed;
-
-        if (weapon.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { attack_speed: > 0 } stats)
-            return speed * (1 + stats.attack_speed / 100f);
-
-        return speed;
+        return speed * (1.0f + Player.m_localPlayer.GetTotalEnchantedValue("attack_speed") / 100f);
     }
+}
 
-    [HarmonyPatch(typeof(Player), nameof(Player.GetSkillFactor))]
-    public class QuickDrawBowSkillIncrease_Player_GetSkillFactor_Patch
+public static partial class PlayerExtension
+{
+    public static List<EnchantmentEffect> GetEnchantedEffects(this Player player, string effectType = null)
     {
-        [UsedImplicitly]
-        private static void Postfix(Player __instance, Skills.SkillType skill, ref float __result)
-        {
-            if (skill == Skills.SkillType.Bows)
+        var equipEffects = player.EquippedEnchantments()
+            .Where(en => en.enchantedItem.level > 0)
+            .SelectMany(en =>
             {
-                float totalAttackSpeedBonus = 0;
-                foreach (var en in __instance.EquippedEnchantments())
-                {
-                    if (en.Stats is { } stats) totalAttackSpeedBonus += stats.attack_speed / 100f;
-                }
-                float drawTimeMultiplier = 1.0f / (1.0f + totalAttackSpeedBonus);
+                float baseValue = SyncedData.GetStatIncrease(en, effectType);
+                return en.enchantedItem.effects
+                    .Where(effect => effectType == null || effect.name == effectType)
+                    .Select(effect => new EnchantmentEffect(effect.name, effect.value * baseValue));
+            });
 
-                float originalDrawTime = (1.0f - __result) * 0.8f + 0.2f;
-                // drawTimeMultiplier * originalDrawTime = (1.0f - adjustedSkillFactor) * 0.8f + 0.2f
-                // Solve
-                float adjustedSkillFactor = 1.0f - (drawTimeMultiplier * originalDrawTime - 0.2f) / 0.8f;
-
-                __result = adjustedSkillFactor; // may exceed 100 but got clamped by the game anyway
-            }
-        }
+        return equipEffects.ToList();
     }
 
-    [HarmonyPatch(typeof(Skills), nameof(Skills.GetSkillFactor))]
-    public static class AddSkillLevel_Skills_GetSkillFactor_Patch
+    public static float GetTotalEnchantedValue(this Player player, string effectType)
     {
-        [UsedImplicitly]
-        private static void Postfix(Skills __instance, SkillType skillType, ref float __result)
+        var totalValue = EquipmentEffectCache.Get(player, effectType, () =>
         {
-            __result += SkillIncrease(__instance.m_player, skillType) / 100f;
-        }
-
-        public static int SkillIncrease(Player player, SkillType skillType)
-        {
-            int increase = 0;
-
-            int getSkillIncrease(SkillType[] types)
-            {
-                int result = 0;
-                if (types.Contains(skillType))
-                {
-                    foreach (var en in player.EquippedEnchantments())
-                    {
-                        if (en.Stats is { } stats) result += stats.weapon_skill;
-                    }
-                    // Debug.LogWarning(skillType + ": +" + result);
-                }
-                return result;
-            }
-
-            increase += getSkillIncrease(new[] { player.GetCurrentWeapon().m_shared.m_skillType });
-            // increase += check(new[] { SkillType.Run, SkillType.Jump, SkillType.Swim, SkillType.Sneak });
-
-            return increase;
-        }
+            var allEffects = player.GetEnchantedEffects(effectType);
+            return allEffects.Count > 0 ? allEffects.Select(effect => effect.value).Sum() : null;
+        }) ?? 0;
+        return totalValue;
     }
 
-    // These fix a bug in vanilla where skill factor cannot go over 100
-    [HarmonyPatch(typeof(Skills), nameof(Skills.GetRandomSkillRange))]
-    public static class Skills_GetRandomSkillRange_Patch
+    // 20% = 1.2x
+    // 40% = 1.4x
+    // 20% + 20% = 1.44x
+    // 20% + 20% + 20% = 1.728x
+    // Extremely powerful if stacked
+    public static float GetTotalEnchantedMultiplierIncreaseMultiplicative(this Player player, string effectType)
     {
-        public static bool Prefix(Skills __instance, out float min, out float max, SkillType skillType)
+        var totalValue = EquipmentEffectCache.Get(player, effectType, () =>
         {
-            var skillValue = Mathf.Lerp(0.4f, 1.0f, __instance.GetSkillFactor(skillType));
-            min = Mathf.Max(0, skillValue - 0.15f);
-            max = skillValue + 0.15f;
-            return false;
-        }
+            var allEffects = player.GetEnchantedEffects(effectType);
+            return allEffects.Count > 0 ? allEffects.Aggregate(1f, (total, effect) => total * (1 + effect.value / 100)) : (float?)null;
+        }) ?? 1f;
+        return totalValue;
     }
 
-    [HarmonyPatch(typeof(Skills), nameof(Skills.GetRandomSkillFactor))]
-    public static class Skills_GetRandomSkillFactor_Patch
+    // 20% = 0.8x
+    // 40% = 0.6x
+    // 20% + 20% = 0.64x
+    // 20% + 20% + 20% = 0.512x
+    // Good for preventing stackable bonuses from going negative
+    public static float GetTotalEnchantedMultiplierDecreaseMultiplicative(this Player player, string effectType)
     {
-        // ReSharper disable once RedundantAssignment
-        public static bool Prefix(Skills __instance, ref float __result, SkillType skillType)
+        var totalValue = EquipmentEffectCache.Get(player, effectType, () =>
         {
-            __instance.GetRandomSkillRange(out var low, out var high, skillType);
-            __result = Mathf.Lerp(low, high, Random.value);
-            return false;
-        }
-    }
-
-    [HarmonyPatch(typeof(SkillsDialog), nameof(SkillsDialog.Setup))]
-    public static class DisplayExtraSkillLevels_SkillsDialog_Setup_Patch
-    {
-        [UsedImplicitly]
-        private static void Postfix(SkillsDialog __instance, Player player)
-        {
-            var allSkills = player.m_skills.GetSkillList();
-
-            // Remove existing extra level bars
-            foreach (var element in __instance.m_elements)
-            {
-                var extraLevelBars = element.GetComponentsInChildren<Transform>(true);
-                foreach (var bar in extraLevelBars)
-                {
-                    if (bar.gameObject.name == "ExtraLevelBar")
-                    {
-                        Object.Destroy(bar.gameObject);
-                    }
-                }
-            }
-
-            foreach (var element in __instance.m_elements)
-            {
-                var skill = allSkills.Find(s => s.m_info.m_description == element.GetComponentInChildren<UITooltip>().m_text);
-                var extraSkillFromVES = AddSkillLevel_Skills_GetSkillFactor_Patch.SkillIncrease(player, skill.m_info.m_skill);
-                if (extraSkillFromVES > 0)
-                {
-                    var levelbar = Utils.FindChild(element.transform, "bar");
-
-                    var extraLevelbar = Object.Instantiate(levelbar.gameObject, levelbar.parent);
-                    extraLevelbar.name = "ExtraLevelBar"; // Tag the extra level bar for removal
-                    var rect = extraLevelbar.GetComponent<RectTransform>();
-                    float skillLevel = player.GetSkills().GetSkillLevel(skill.m_info.m_skill);
-                    rect.sizeDelta = new Vector2((skillLevel + extraSkillFromVES) * 1.6f, rect.sizeDelta.y);
-                    var image = extraLevelbar.GetComponent<Image>();
-                    image.color = Color.magenta;
-                    extraLevelbar.transform.SetSiblingIndex(levelbar.GetSiblingIndex());
-
-                    var bonustext = Utils.FindChild(element.transform, "bonustext");
-                    var text = bonustext.GetComponent<TextMeshProUGUI>();
-                    bool hasExistingSetBonus = skillLevel != Mathf.Floor(skill.m_level);
-                    var extraSkillText = $"<color=#CC00CC>+{extraSkillFromVES}</color>";
-                    text.text = hasExistingSetBonus ? text.text + extraSkillText : extraSkillText;
-                    bonustext.gameObject.SetActive(true);
-                }
-            }
-        }
+            var allEffects = player.GetEnchantedEffects(effectType);
+            return allEffects.Count > 0 ? allEffects.Aggregate(1f, (total, effect) => total * (1 - effect.value / 100)) : (float?)null;
+        }) ?? 1f;
+        return totalValue;
     }
 }
