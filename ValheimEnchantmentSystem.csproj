@@ -335,8 +335,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="Copy" AfterTargets="ILRepack">
-	<Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Users\Nut\AppData\Roaming\r2modmanPlus-local\Valheim\profiles\Default\BepInEx\plugins\$(AssemblyName).dll&quot;" />
     <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Users\NuTNNuT\AppData\Roaming\r2modmanPlus-local\Valheim\profiles\enhancesystem\BepInEx\plugins\$(AssemblyName).dll&quot;" />
+	<Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Users\Nut\AppData\Roaming\r2modmanPlus-local\Valheim\profiles\Default\BepInEx\plugins\$(AssemblyName).dll&quot;" />
     <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim Dedicated Server\BepInEx\plugins\$(AssemblyName).dll&quot;" />
     <Exec Command="pdb2mdb.exe &quot;$(TargetDir)$(AssemblyName).dll&quot;" />
     <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll.mdb&quot; &quot;C:\Program Files (x86)\Steam\steamapps\common\Valheim\BepInEx\plugins\$(AssemblyName).dll.mdb&quot;" />

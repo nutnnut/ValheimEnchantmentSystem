@@ -99,7 +99,6 @@ public static class Enchantment_VFX
             List<Material> list = renderer.sharedMaterials.ToList();
             list.Add(VFXs[variant]);
             renderer.sharedMaterials = list.ToArray();
-            // if (isArmor) continue;
             bool isSkinned = renderer is SkinnedMeshRenderer;
             if (isSkinned)
             {
