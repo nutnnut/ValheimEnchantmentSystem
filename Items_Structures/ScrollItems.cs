@@ -81,7 +81,7 @@ public static class ScrollItems
         AllowScrollCombine = ValheimEnchantmentSystem.config("Scrolls", "Allow Combine", true, "Allow combining scrolls.");
         CombineOutline = ValheimEnchantmentSystem._asset.LoadAsset<GameObject>("Enchantment_CombinePart");
         MonsterDroppingScrolls = ValheimEnchantmentSystem.config("Scrolls", "Drop From Monsters", true, "Allow monsters to drop scrolls.");
-        MonsterDroppingSkilllScrolls = ValheimEnchantmentSystem.config("Skill Scrolls", "Drop From Monsters (Skill exp)", true, "Allow monsters to drop enchant skill exp scrolls.");
+        MonsterDroppingSkilllScrolls = ValheimEnchantmentSystem.config("Skill Scrolls", "Drop From Monsters (Skill exp)", false, "Allow monsters to drop enchant skill exp scrolls.");
         DropChance = ValheimEnchantmentSystem.config("Scrolls", "Drop Chance", 8f, "Chance to drop from enemies.");
         DropChance_Bosses = ValheimEnchantmentSystem.config("Scrolls", "Drop Chance (Bosses)", 100f, "Chance to drop from bosses.");
         DropChance_Blessed = ValheimEnchantmentSystem.config("Scrolls", "Blessed Drop Chance", 0.25f, "Chance to drop from enemies.");

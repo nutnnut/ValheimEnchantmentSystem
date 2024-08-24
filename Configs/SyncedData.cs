@@ -34,13 +34,12 @@ public static class SyncedData
     {
         SafetyLevel = ValheimEnchantmentSystem.config("Enchantment", "SafetyLevel", 3,
             "The level until which enchantments won't destroy the item. Set to 0 to disable.");
-        DropEnchantmentOnUpgrade = ValheimEnchantmentSystem.config("Enchantment", "DropEnchantmentOnUpgrade", false, "Drop enchantment on item upgrade.");
-        ItemFailureType = ValheimEnchantmentSystem.config("Enchantment", "ItemFailureType", ItemDesctructionTypeEnum.LevelDecrease, "LevelDecrease will remove one level on fail, Destroy will destroy item on fail, Combined will use yaml destroy chance and success chance, CombinedEasy will keep or decrease level and never destroy");
+        ItemFailureType = ValheimEnchantmentSystem.config("Enchantment", "ItemFailureType", ItemDesctructionTypeEnum.CombinedEasy, "LevelDecrease - downgrade level by 1 on failure\nDestroy - destroy item on failure\nCombined - uses yaml, downgrade or destroy on failure\nCombinedEasy - uses yaml, no change or downgrade on failure");
         AllowJewelcraftingMirrorCopyEnchant = ValheimEnchantmentSystem.config("Enchantment", "AllowJewelcraftingMirrorCopyEnchant", false, "Allow jewelcrafting to copy enchantment from one item to another using mirror.");
-        AdditionalEnchantmentChancePerLevel = ValheimEnchantmentSystem.config("Enchantment", "AdditionalEnchantmentChancePerLevel", 0.06f, "Additional enchantment chance per level of Enchantment skill.");
-        AllowVFXArmor = ValheimEnchantmentSystem.config("Enchantment", "AllowVFXArmor", false, "Allow VFX on armor.");
+        AdditionalEnchantmentChancePerLevel = ValheimEnchantmentSystem.config("Enchantment", "AdditionalEnchantmentChancePerLevel", 0.00f, "Additional enchantment chance per level of Enchantment skill. (ex. 0.05 = 5% at max level)");
+        AllowVFXArmor = ValheimEnchantmentSystem.config("Enchantment", "AllowVFXArmor", true, "Allow VFX on armor.");
         EnchantmentEnableNotifications = ValheimEnchantmentSystem.config("Notifications", "EnchantmentEnableNotifications", true, "Enable enchantment notifications.");
-        EnchantmentNotificationMinLevel = ValheimEnchantmentSystem.config("Notifications", "EnchantmentNotificationMinLevel", 6, "The minimum level of enchantment to show notification.");
+        EnchantmentNotificationMinLevel = ValheimEnchantmentSystem.config("Notifications", "EnchantmentNotificationMinLevel", 5, "The minimum level of enchantment to show notification.");
 
         YAML_Stats_Weapons = Path.Combine(ValheimEnchantmentSystem.ConfigFolder, "EnchantmentStats_Weapons.yml");
         YAML_Stats_Armor = Path.Combine(ValheimEnchantmentSystem.ConfigFolder, "EnchantmentStats_Armor.yml");
@@ -389,13 +388,18 @@ public static class SyncedData
     public enum ItemDesctructionTypeEnum{ LevelDecrease, Destroy, Combined, CombinedEasy }
     
     public static ConfigEntry<int> SafetyLevel;
-    public static ConfigEntry<bool> DropEnchantmentOnUpgrade;
     public static ConfigEntry<ItemDesctructionTypeEnum> ItemFailureType;
     public static ConfigEntry<bool> AllowJewelcraftingMirrorCopyEnchant;
     public static ConfigEntry<float> AdditionalEnchantmentChancePerLevel;
     public static ConfigEntry<int> EnchantmentNotificationMinLevel;
     public static ConfigEntry<bool> EnchantmentEnableNotifications;
     public static ConfigEntry<bool> AllowVFXArmor;
+
+    public static bool IsCombinedFailureType()
+    {
+        return ItemFailureType.Value == ItemDesctructionTypeEnum.Combined ||
+               ItemFailureType.Value == ItemDesctructionTypeEnum.CombinedEasy;
+    }
 
     public static readonly CustomSyncedValue<Dictionary<int, Chance_Data>> Synced_EnchantmentChances =
         new(ValheimEnchantmentSystem.ConfigSync, "EnchantmentGlobalChances",

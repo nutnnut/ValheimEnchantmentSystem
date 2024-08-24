@@ -11,9 +11,9 @@ namespace kg.ValheimEnchantmentSystem
     [BepInDependency("com.bepis.bepinex.configurationmanager", BepInDependency.DependencyFlags.SoftDependency)]
     public class ValheimEnchantmentSystem : BaseUnityPlugin
     {
-        private const string GUID = "kg.ValheimEnchantmentSystem";
-        private const string PLUGIN_NAME = "Valheim Enchantment System"; 
-        private const string PLUGIN_VERSION = "1.6.9";
+        private const string GUID = "nut.ValheimEnchantmentSystem";
+        private const string PLUGIN_NAME = "Chaos Valheim Enchantment System (Fork of kg's VES)"; 
+        private const string PLUGIN_VERSION = "0.1";
          
        
                 

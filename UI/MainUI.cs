@@ -576,13 +576,22 @@ public static class VES_UI
 
         if (success > 100) success = 100;
         Chance_Text.text = $"{success}%";
-        double destroy = _useBless ? 0 : en.GetDestroyChance();
-        double destroy_total = (100 - success) / 100f * destroy;
-        double nochange = 100 - success - destroy_total;
 
-        string nochangetxt = $"<color=yellow>{nochange}%</color>";
-        string destroytxt = destroy_total > 0 ? $"\n{destroy_total}%" : "";
-        Destroy_Chance_Text.text = $"{nochangetxt}{destroytxt}";
+        if (SyncedData.IsCombinedFailureType())
+        {
+            double destroy = _useBless ? 0 : en.GetDestroyChance();
+            double destroy_total = (100 - success) / 100f * destroy;
+            double failure = 100 - success - destroy_total;
+            string failuretxt = $"<color=yellow>{failure}%</color>";
+            string destroytxt = destroy_total > 0 ? $"\n{destroy_total}%" : "";
+            Destroy_Chance_Text.text = $"{failuretxt}{destroytxt}";
+        } else
+        {
+            double failure = 100 - success;
+            string color = _useBless ? "yellow" : "red";
+            Destroy_Chance_Text.text = $"<color={color}>{failure}%</color>";
+        }
+        
     }
 
     private static void Show()

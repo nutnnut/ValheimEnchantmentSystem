@@ -3,6 +3,7 @@ using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Configs;
 using kg.ValheimEnchantmentSystem.Misc;
 using TMPro;
+using UnityEngine.Rendering;
 using Object = UnityEngine.Object;
 
 namespace kg.ValheimEnchantmentSystem;
@@ -14,7 +15,7 @@ public static class Enchantment_VFX
     private static readonly int TintColor = Shader.PropertyToID("_TintColor");
 
     private static GameObject VES_MPE;
-    private static readonly List<float> INTENSITY = new List<float> { 22f, 8f, 100f, 1f };
+    private static readonly List<float> INTENSITY = new List<float> { 22f, 40f, 200f, 3f };
 
     public static readonly List<Material> VFXs = new List<Material>();
 
@@ -86,14 +87,18 @@ public static class Enchantment_VFX
             l.intensity *= isArmor ? 0.25f * c.a : 1.0f * c.a;
             l.range = 9f;
         }
-     
+        int original_variant = variant;
+        if (isArmor && original_variant == 3)
+        {
+            variant = 0;
+        }
+
         List<Renderer> renderers = item.GetComponentsInChildren<SkinnedMeshRenderer>(true).Cast<Renderer>().Concat(item.GetComponentsInChildren<MeshRenderer>(true)).ToList();
         foreach (Renderer renderer in renderers)
         {
             List<Material> list = renderer.sharedMaterials.ToList();
             list.Add(VFXs[variant]);
             renderer.sharedMaterials = list.ToArray();
-            // if (isArmor) continue;
             bool isSkinned = renderer is SkinnedMeshRenderer;
             if (isSkinned)
             {
@@ -124,9 +129,16 @@ public static class Enchantment_VFX
                 ps.gameObject.SetActive(true); 
             }  
         }
-        foreach (Material material in renderers.SelectMany(m => m.materials)) 
-                if (material.name.Contains("Enchantment_VFX_Mat"))
-                    material.SetColor(TintColor, c * INTENSITY[variant]);
+        foreach (Material material in renderers.SelectMany(m => m.materials))
+        {
+            if (material.name.Contains("Enchantment_VFX_Mat"))
+            {
+                material.SetColor(TintColor, c * INTENSITY[variant]);
+                float speedMultiplier = original_variant == 3 ? 0.3f : 0.5f;
+                material.SetVector("_TimeScale", material.GetVector("_TimeScale") * speedMultiplier);
+                if (isArmor && original_variant == 3) material.mainTextureScale *= 2f;
+            }
+        }
     }
 
     [HarmonyPatch(typeof(VisEquipment), nameof(VisEquipment.SetLeftHandEquipped))]
