@@ -13,7 +13,7 @@ namespace kg.ValheimEnchantmentSystem
     {
         private const string GUID = "kg.ValheimEnchantmentSystem";
         private const string PLUGIN_NAME = "Chaos Valheim Enchantment System"; 
-        private const string PLUGIN_VERSION = "0.1.2";
+        private const string PLUGIN_VERSION = "0.1.3";
          
        
                 
