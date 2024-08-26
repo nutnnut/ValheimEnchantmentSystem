@@ -81,6 +81,11 @@ public static class Enchantment_Core
 
         public static float? Get(Player player, string effect, Func<float?> calculate)
         {
+            if (player == null)
+            {
+                return null;
+            }
+
             var values = EquippedValues.GetOrCreateValue(player);
             if (values.TryGetValue(effect, out float? value))
             {
@@ -479,14 +484,16 @@ public static partial class PlayerExtension
         return equipEffects.ToList();
     }
 
+    // Increase additive
     public static float GetTotalEnchantedValue(this Player player, string effectType)
     {
         var totalValue = EquipmentEffectCache.Get(player, effectType, () =>
         {
             var allEffects = player.GetEnchantedEffects(effectType);
             return allEffects.Count > 0 ? allEffects.Select(effect => effect.value).Sum() : null;
-        }) ?? 0;
-        return totalValue;
+        });
+
+        return totalValue ?? 0f;
     }
 
     // 20% = 1.2x
@@ -499,9 +506,9 @@ public static partial class PlayerExtension
         var totalValue = EquipmentEffectCache.Get(player, effectType, () =>
         {
             var allEffects = player.GetEnchantedEffects(effectType);
-            return allEffects.Count > 0 ? allEffects.Aggregate(1f, (total, effect) => total * (1 + effect.value / 100)) : (float?)null;
-        }) ?? 1f;
-        return totalValue;
+            return allEffects.Count > 0 ? allEffects.Aggregate(1f, (total, effect) => total * (1 + effect.value / 100)) : null;
+        });
+        return totalValue ?? 1f;
     }
 
     // 20% = 0.8x
@@ -515,7 +522,7 @@ public static partial class PlayerExtension
         {
             var allEffects = player.GetEnchantedEffects(effectType);
             return allEffects.Count > 0 ? allEffects.Aggregate(1f, (total, effect) => total * (1 - effect.value / 100)) : (float?)null;
-        }) ?? 1f;
-        return totalValue;
+        });
+        return totalValue ?? 1f;
     }
 }
