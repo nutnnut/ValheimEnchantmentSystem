@@ -236,7 +236,7 @@ public static class Defaults
                 "AtgeirIron", "AxeIron", "Battleaxe", "BowHuntsman", "Lantern", "MaceIron", "PickaxeIron",
                 "ShieldBanded", "ShieldIronBuckler", "ShieldIronSquare", "ShieldIronTower", "ShieldSerpentscale",
                 "SledgeIron", "SpearElderbark", "SwordIron", "TankardAnniversary", "TorchMist", "KnifeChitin",
-                "SpearChitin",  "ArmorRootChest"
+                "SpearChitin"
             }
         },
         new SyncedData.EnchantmentReqs()
@@ -244,7 +244,7 @@ public static class Defaults
             enchant_prefab = new("kg_EnchantScroll_Armor_C", 1),
             blessed_enchant_prefab = new("kg_EnchantScroll_Armor_Blessed_C", 1), Items = new()
             {
-                "ArmorIronChest", "ArmorIronLegs","ArmorRootLegs", "HelmetIron", "HelmetRoot"
+                "HelmetIron", "ArmorIronChest", "ArmorIronLegs", "HelmetRoot", "ArmorRootChest","ArmorRootLegs"
             }
         },
         new SyncedData.EnchantmentReqs()
