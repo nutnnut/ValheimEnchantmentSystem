@@ -541,28 +541,42 @@ public static class Enchantment_VFX
         {
             if (_needUpdateFrame != Time.frameCount) return;
             int width = __instance.m_inventory.GetWidth();
-            foreach (InventoryGrid.Element element in __instance.m_elements)
+
+            foreach (var element in __instance.m_elements)
             {
-                if (!element.m_used) element.m_go.transform.Find("VES_Level").gameObject.SetActive(false);
+                element.m_go.transform.Find("VES_Level")?.gameObject.SetActive(false);
             }
 
-            foreach (ItemDrop.ItemData itemData in __instance.m_inventory.GetAllItems())
+            foreach (var itemData in __instance.m_inventory.GetAllItems())
             {
-                InventoryGrid.Element element = __instance.GetElement(itemData.m_gridPos.x, itemData.m_gridPos.y, width);
-                Transform ves = element.m_go.transform.Find("VES_Level");
-                Enchantment_Core.Enchanted en = itemData.Data().Get<Enchantment_Core.Enchanted>();
-                if (en && en.level > 0)
+                var element = __instance.GetElement(itemData.m_gridPos.x, itemData.m_gridPos.y, width);
+                var ves = element?.m_go.transform.Find("VES_Level");
+
+                var en = itemData.Data()?.Get<Enchantment_Core.Enchanted>();
+                if (en?.level > 0)
                 {
-                    ves.gameObject.SetActive(true);
-                    Color c = SyncedData.GetColor(en, out _, true).ToColorAlpha().IncreaseColorLight();
-                    ves.transform.GetChild(0).GetComponent<TMP_Text>().text = "+" + en!.level;
-                    ves.transform.GetChild(0).GetComponent<TMP_Text>().color = c;
-                    ves.transform.GetChild(1).GetComponent<Image>().color = c;
-                    ves.transform.GetChild(1).gameObject.SetActive(_enableInventoryVisual.Value);
+                    var color = SyncedData.GetColor(en, out _, true).ToColorAlpha().IncreaseColorLight();
+                    if (ves != null)
+                    {
+                        ves.gameObject.SetActive(true);
+                        var textComponent = ves.transform.GetChild(0)?.GetComponent<TMP_Text>();
+                        if (textComponent != null)
+                        {
+                            textComponent.text = "+" + en.level;
+                            textComponent.color = color;
+                        }
+
+                        var imageComponent = ves.transform.GetChild(1)?.GetComponent<Image>();
+                        if (imageComponent != null)
+                        {
+                            imageComponent.color = color;
+                            imageComponent.gameObject.SetActive(_enableInventoryVisual.Value);
+                        }
+                    }
                 }
                 else
                 {
-                    ves.gameObject.SetActive(false);
+                    ves?.gameObject.SetActive(false);
                 }
             }
         }
