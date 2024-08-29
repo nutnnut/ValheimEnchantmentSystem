@@ -17,6 +17,7 @@ using Newtonsoft.Json;
 using System.Runtime.CompilerServices;
 using UnityEngine.UIElements;
 using static kg.ValheimEnchantmentSystem.Enchantment_Core;
+using System.Collections.Concurrent;
 
 namespace kg.ValheimEnchantmentSystem;
 
@@ -40,13 +41,13 @@ public static class Enchantment_Core
         yield return new WaitForEndOfFrame();
         yield return new WaitForEndOfFrame();
         yield return new WaitForEndOfFrame();
-        if (Player.m_localPlayer && Player.m_localPlayer.m_inventory.ContainsItem(weapon))
-            Player.m_localPlayer?.EquipItem(weapon);
+        //if (Player.m_localPlayer && Player.m_localPlayer.m_inventory.ContainsItem(weapon))
+        //    Player.m_localPlayer?.EquipItem(weapon);
     }
 
     public static class EquipmentEffectCache
     {
-        public static ConditionalWeakTable<Player, Dictionary<string, float?>> EquippedValues = new ConditionalWeakTable<Player, Dictionary<string, float?>>();
+        public static ConditionalWeakTable<Player, ConcurrentDictionary<string, float?>> EquippedValues = new ConditionalWeakTable<Player, ConcurrentDictionary<string, float?>>();
 
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.UnequipItem))]
         public static class EquipmentEffectCache_Humanoid_UnequipItem_Patch
