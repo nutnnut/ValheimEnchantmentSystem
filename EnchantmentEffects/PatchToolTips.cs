@@ -21,7 +21,7 @@ public class PatchToolTips
         private static void Prefix(InventoryGrid __instance, ItemDrop.ItemData item, out string __state)
         {
             __state = null;
-            if (item?.Data().Get<Enchanted>() is not { level: > 0 } en) return;
+            if (item?.Data()?.Get<Enchanted>() is not { level: > 0 } en) return;
             __state = item.m_shared.m_name;
 
             string suffix = en.GenerateNameSuffix();
@@ -43,7 +43,7 @@ public class PatchToolTips
         private static void Prefix(ItemDrop __instance, out string __state)
         {
             __state = null;
-            if (__instance.m_itemData?.Data().Get<Enchanted>() is not { level: > 0 } en) return;
+            if (__instance.m_itemData?.Data()?.Get<Enchanted>() is not { level: > 0 } en) return;
             __state = __instance.m_itemData.m_shared.m_name;
 
             string suffix = en.GenerateNameSuffix();
@@ -61,7 +61,7 @@ public class PatchToolTips
     public static void Postfix(ItemDrop.ItemData item, bool crafting, int qualityLevel, ref string __result)
     {
         bool blockShowEnchant = false;
-        if (item.Data().Get<Enchantment_Core.Enchanted>() is { level: > 0 } en)
+        if (item.Data()?.Get<Enchantment_Core.Enchanted>() is { level: > 0 } en)
         {
             SyncedData.Stat_Data stats = en.Stats;
             string color = SyncedData.GetColor(en, out _, true).IncreaseColorLight();

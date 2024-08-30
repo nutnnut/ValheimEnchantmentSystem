@@ -15,7 +15,7 @@ public class ApplySkillToDurability
     [UsedImplicitly]
     private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
     {
-        if (__instance?.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
+        if (__instance.Data()?.Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
         {
             __result *= 1 + stats.durability_percentage / 100f;
             __result += stats.durability;

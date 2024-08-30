@@ -21,7 +21,7 @@ public static class ModifyDamage
     [UsedImplicitly]
     private static void Postfix(ItemDrop.ItemData __instance, ref HitData.DamageTypes __result)
     {
-        if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
+        if (__instance.Data()?.Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
         {
             float rawDmg = __result.GetTotalBlockableDamage();
             __result.Modify(1 + stats.damage_percentage / 100f);

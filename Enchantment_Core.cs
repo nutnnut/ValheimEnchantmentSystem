@@ -491,7 +491,7 @@ public static partial class PlayerExtension
         var totalValue = EquipmentEffectCache.Get(player, effectType, () =>
         {
             var allEffects = player.GetEnchantedEffects(effectType);
-            return allEffects.Count > 0 ? allEffects.Select(effect => effect.value).Sum() : null;
+            return allEffects.Count > 0 ? allEffects.Select(effect => effect.value).Sum() : 0f;
         });
 
         return totalValue ?? 0f;
@@ -507,7 +507,7 @@ public static partial class PlayerExtension
         var totalValue = EquipmentEffectCache.Get(player, effectType, () =>
         {
             var allEffects = player.GetEnchantedEffects(effectType);
-            return allEffects.Count > 0 ? allEffects.Aggregate(1f, (total, effect) => total * (1 + effect.value / 100)) : null;
+            return allEffects.Count > 0 ? allEffects.Aggregate(1f, (total, effect) => total * (1 + effect.value / 100)) : 1f;
         });
         return totalValue ?? 1f;
     }
@@ -522,7 +522,7 @@ public static partial class PlayerExtension
         var totalValue = EquipmentEffectCache.Get(player, effectType, () =>
         {
             var allEffects = player.GetEnchantedEffects(effectType);
-            return allEffects.Count > 0 ? allEffects.Aggregate(1f, (total, effect) => total * (1 - effect.value / 100)) : (float?)null;
+            return allEffects.Count > 0 ? allEffects.Aggregate(1f, (total, effect) => total * (1 - effect.value / 100)) : 1f;
         });
         return totalValue ?? 1f;
     }

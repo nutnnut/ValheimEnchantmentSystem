@@ -12,7 +12,7 @@ namespace kg.ValheimEnchantmentSystem.EnchantmentEffects
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
+            if (__instance.Data()?.Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
             {
                 __result *= 1 + stats.armor_percentage / 100f;
                 __result += stats.armor;
@@ -33,7 +33,7 @@ namespace kg.ValheimEnchantmentSystem.EnchantmentEffects
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
-            if (__instance.Data().Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
+            if (__instance.Data()?.Get<Enchanted>() is { level: > 0 } data && data.Stats is { } stats)
             {
                 __result *= 1 + stats.armor_percentage / 100f;
                 __result += stats.armor;

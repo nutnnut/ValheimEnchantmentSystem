@@ -52,7 +52,7 @@ public static class Enchantment_VFX
         private static string GetEnchantmentColor(ItemDrop.ItemData item, out int variant, bool trimAlpha = false)
         {
             variant = 0;
-            if (item?.Data().Get<Enchantment_Core.Enchanted>() is { level: > 0 } en)
+            if (item?.Data()?.Get<Enchantment_Core.Enchanted>() is { level: > 0 } en)
             {
                 return SyncedData.GetColor(en, out variant, trimAlpha);
             }
@@ -512,7 +512,7 @@ public static class Enchantment_VFX
             {
                 HotkeyBar.ElementData element = __instance.m_elements[itemData.m_gridPos.x];
                 Transform ves = element.m_go.transform.Find("VES_Level");
-                Enchantment_Core.Enchanted en = itemData.Data().Get<Enchantment_Core.Enchanted>();
+                Enchantment_Core.Enchanted en = itemData.Data()?.Get<Enchantment_Core.Enchanted>();
                 if (en && en!.level > 0)
                 {
                     ves.gameObject.SetActive(true);
