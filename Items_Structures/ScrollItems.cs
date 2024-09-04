@@ -2,6 +2,7 @@
 using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Misc;
 using kg.ValheimEnchantmentSystem.UI;
+using TMPro;
 using Object = UnityEngine.Object;
 using Random = UnityEngine.Random;
 
@@ -195,29 +196,46 @@ public static class ScrollItems
     [ClientOnlyPatch]
     static class Tome_SpawnLoot_Patch
     {
-        private static void TryDropDefault(char tier, bool isBoss, Vector3 pos)
+
+        // Vanilla-like formula is too much, may 100% give 32 scrolls at once with CLLC mob lv6, 64 if world x2
+        // int levelDropMultiplier = ((!character) ? 1 : Mathf.Max(1, (int)Mathf.Pow(2f, character.GetLevel() - 1)));
+        private static void TryDropDefault(char tier, Character character, Vector3 pos)
         {
+            bool isBoss = character.IsBoss();
             float rand = Random.value;
             float dropChance = isBoss ? DropChance_Bosses.Value : DropChance.Value;
+            int levelDropMultiplier = ((!character) ? 1 : Mathf.Max(1, character.GetLevel())); // Linear scaling on drop chance (maybe ^1.5 exponential because also apply to drop amount upper limit)
+            dropChance *= levelDropMultiplier;
             dropChance /= 100f;
             if(rand <= dropChance)
             {
-                bool isWeapon = Random.value < 0.5f;
-                string book = isWeapon ? $"kg_EnchantScroll_Weapon_{tier}" : $"kg_EnchantScroll_Armor_{tier}";
-                DropItem(ZNetScene.instance.GetPrefab(book), pos + Vector3.up * 0.75f, 0.5f);
+                int amountToDrop = Game.instance.ScaleDrops(1, levelDropMultiplier);
+                for (int i = 0; i < amountToDrop; i++)
+                {
+                    bool isWeapon = Random.value < 0.5f;
+                    string book = isWeapon ? $"kg_EnchantScroll_Weapon_{tier}" : $"kg_EnchantScroll_Armor_{tier}";
+                    DropItem(ZNetScene.instance.GetPrefab(book), pos + Vector3.up * 0.75f, 0.5f);
+                }
             }
         }
         
-        private static void TryDropBlessed(char tier, bool isBoss, Vector3 pos)
+        private static void TryDropBlessed(char tier, Character character, Vector3 pos)
         {
+            bool isBoss = character.IsBoss();
             float rand = Random.value;
             float dropChance = isBoss ? DropChance_Blessed_Bosses.Value : DropChance_Blessed.Value;
+            int levelDropMultiplier = ((!character) ? 1 : Mathf.Max(1, character.GetLevel()));
+            dropChance *= levelDropMultiplier;
             dropChance /= 100f;
             if(rand <= dropChance)
             {
-                bool isWeapon = Random.value < 0.5f;
-                string book = isWeapon ? $"kg_EnchantScroll_Weapon_Blessed_{tier}" : $"kg_EnchantScroll_Armor_Blessed_{tier}";
-                DropItem(ZNetScene.instance.GetPrefab(book), pos + Vector3.up * 0.75f, 0.5f);
+                int amountToDrop = Game.instance.ScaleDrops(1, levelDropMultiplier);
+                for (int i = 0; i < amountToDrop; i++)
+                {
+                    bool isWeapon = Random.value < 0.5f;
+                    string book = isWeapon ? $"kg_EnchantScroll_Weapon_Blessed_{tier}" : $"kg_EnchantScroll_Armor_Blessed_{tier}";
+                    DropItem(ZNetScene.instance.GetPrefab(book), pos + Vector3.up * 0.75f, 0.5f);
+                }
             }
         }
 
@@ -231,8 +249,8 @@ public static class ScrollItems
             if(!BiomeMapper.TryGetValue(biome, out ConfigEntry<string> tier)) return;
             Vector3 position = __instance.transform.position;
             char tierValue = tier.Value[0];
-            TryDropDefault(tierValue, __instance.IsBoss(), position);
-            TryDropBlessed(tierValue, __instance.IsBoss(), position);
+            TryDropDefault(tierValue, __instance, position);
+            TryDropBlessed(tierValue, __instance, position);
         }
     }
     

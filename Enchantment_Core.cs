@@ -49,6 +49,23 @@ public static class Enchantment_Core
     {
         public static ConditionalWeakTable<Player, ConcurrentDictionary<string, float?>> EquippedValues = new ConditionalWeakTable<Player, ConcurrentDictionary<string, float?>>();
 
+        public static float? Get(Player player, string effect, Func<float?> calculate)
+        {
+            if (player == null)
+            {
+                return null;
+            }
+
+            var values = EquippedValues.GetOrCreateValue(player);
+            if (values.TryGetValue(effect, out float? value))
+            {
+                return value;
+            }
+
+            var calculatedValue = calculate();
+            return values[effect] = calculatedValue ?? 0f;
+        }
+
         [HarmonyPatch(typeof(Humanoid), nameof(Humanoid.UnequipItem))]
         public static class EquipmentEffectCache_Humanoid_UnequipItem_Patch
         {
@@ -75,25 +92,19 @@ public static class Enchantment_Core
             }
         }
 
+        [HarmonyPatch(typeof(Player), nameof(Player.OnDeath))]
+        public static class EquipmentEffectCache_Player_OnDeath_Patch
+        {
+            [UsedImplicitly]
+            public static void Prefix(Player __instance)
+            {
+                Reset(__instance);
+            }
+        }
+
         public static void Reset(Player player)
         {
             EquippedValues.Remove(player);
-        }
-
-        public static float? Get(Player player, string effect, Func<float?> calculate)
-        {
-            if (player == null)
-            {
-                return null;
-            }
-
-            var values = EquippedValues.GetOrCreateValue(player);
-            if (values.TryGetValue(effect, out float? value))
-            {
-                return value;
-            }
-
-            return values[effect] = calculate();
         }
     }
 
