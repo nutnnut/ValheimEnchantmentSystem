@@ -339,7 +339,7 @@ public static class SyncedData
     private static readonly Dictionary<string, Dictionary<int, VFX_Data>> OPTIMIZED_Overrides_EnchantmentColors = new();
     private static readonly Dictionary<string, Dictionary<int, Stat_Data>> OPTIMIZED_Overrides_EnchantmentStats = new();
 
-    private static List<FieldInfo> _stat_Data_Cached_Fields = AccessTools.GetDeclaredFields(typeof(Stat_Data)).Where(x => x.FieldType.IsValueType).ToList();
+    private static readonly List<FieldInfo> _stat_Data_Cached_Fields = AccessTools.GetDeclaredFields(typeof(Stat_Data)).Where(x => x.FieldType.IsValueType).ToList();
     public partial class Stat_Data
     {
         private bool ShouldShow() => _stat_Data_Cached_Fields.Any(x => !x.GetValue(this).Equals(Activator.CreateInstance(x.FieldType)));
@@ -347,8 +347,8 @@ public static class SyncedData
         public List<HitData.DamageModPair> GetResistancePairs()
         {
             if (cached_resistance_pairs != null) return cached_resistance_pairs;
-            cached_resistance_pairs = new()
-            {
+            cached_resistance_pairs =
+            [
                 new() { m_type = HitData.DamageType.Blunt, m_modifier = resistance_blunt },
                 new() { m_type = HitData.DamageType.Slash, m_modifier = resistance_slash },
                 new() { m_type = HitData.DamageType.Pierce, m_modifier = resistance_pierce },
@@ -358,8 +358,8 @@ public static class SyncedData
                 new() { m_type = HitData.DamageType.Frost, m_modifier = resistance_frost },
                 new() { m_type = HitData.DamageType.Lightning, m_modifier = resistance_lightning },
                 new() { m_type = HitData.DamageType.Poison, m_modifier = resistance_poison },
-                new() { m_type = HitData.DamageType.Spirit, m_modifier = resistance_spirit },
-            };
+                new() { m_type = HitData.DamageType.Spirit, m_modifier = resistance_spirit }
+            ];
             cached_resistance_pairs.RemoveAll(x => x.m_modifier == HitData.DamageModifier.Normal);
             return cached_resistance_pairs;
         }
@@ -387,8 +387,6 @@ public static class SyncedData
             if (damage_lightning > 0) builder.Append($"\n<color={color}>•</color> $inventory_lightning: <color=#0000FF>+{damage_lightning}</color>");
             if (damage_poison > 0) builder.Append($"\n<color={color}>•</color> $inventory_poison: <color=#00FF00>+{damage_poison}</color>");
             if (damage_spirit > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>+{damage_spirit}</color>");
-            // if (armor > 0) builder.Append($"\n<color={color}>•</color> $item_armor: <color=#808080>+{armor}</color>");
-            // if (durability > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability}</color>");
             if (max_hp > 0) builder.Append($"\n<color={color}>•</color> $se_health: <color=#DD3333>+{max_hp}</color>");
             if (hp_regen > 0) builder.Append($"\n<color={color}>•</color> $se_healthregen: <color=#DD3333>+{hp_regen}/10s</color>");
             if (max_stamina > 0) builder.Append($"\n<color={color}>•</color> $se_stamina: <color=#EEEE11>+{max_stamina}</color>");
@@ -476,7 +474,7 @@ public static class SyncedData
     {
         [SerializeField] public string prefab;
         [SerializeField] public int amount;
-        public SingleReq() { }
+        public SingleReq(){}
         public SingleReq (string prefab, int amount) { this.prefab = prefab; this.amount = amount; }
         public bool IsValid() => !string.IsNullOrEmpty(prefab) && amount > 0 && ZNetScene.instance.GetPrefab(prefab);
         public void Serialize  (ref ZPackage pkg) => throw new NotImplementedException();

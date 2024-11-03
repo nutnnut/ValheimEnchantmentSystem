@@ -158,7 +158,7 @@ public static class Enchantment_Core
                         msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString(), level.ToString());
                         notification = Notifications_UI.NotificationItemResult.LevelDecrease;
                         break;
-                    case SyncedData.ItemDesctructionTypeEnum.Destroy:
+                    case SyncedData.ItemDesctructionTypeEnum.Destroy: 
                         Player.m_localPlayer.UnequipItem(Item);
                         Player.m_localPlayer.m_inventory.RemoveItem(Item);
                         msg = "$enchantment_fail_destroyed".Localize(Item.m_shared.m_name.Localize());
@@ -182,7 +182,7 @@ public static class Enchantment_Core
                         }
                         break;
                     case SyncedData.ItemDesctructionTypeEnum.CombinedEasy:
-                        notification = destroy ? Notifications_UI.NotificationItemResult.LevelDecrease : Notifications_UI.NotificationItemResult.LevelDecrease;
+                        notification = Notifications_UI.NotificationItemResult.LevelDecrease;
                         if (destroy)
                         {
                             level = Mathf.Max(0, level - 1);
@@ -258,8 +258,7 @@ public static class Enchantment_Core
         }
     }
 
-    [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData),
-        typeof(int), typeof(bool), typeof(float))]
+    [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
     [ClientOnlyPatch]
     public class TooltipPatch
     {
@@ -374,7 +373,7 @@ public static class Enchantment_Core
 
         }
     }
-
+ 
     [HarmonyPatch(typeof(InventoryGui), nameof(InventoryGui.UpdateRecipe))]
     [ClientOnlyPatch]
     private static class InventoryGui_UpdateRecipe_Patch
@@ -382,7 +381,7 @@ public static class Enchantment_Core
         [UsedImplicitly]
         private static void Postfix(InventoryGui __instance)
         {
-            Enchanted en = __instance.m_selectedRecipe.Value?.Data().Get<Enchanted>();
+            Enchanted en = __instance.m_selectedRecipe.ItemData?.Data().Get<Enchanted>();
             if (!en) return;
             string color = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
             __instance.m_recipeName.text += $" (<color={color}>+{en!.level}</color>)";

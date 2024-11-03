@@ -12,29 +12,26 @@ namespace kg.ValheimEnchantmentSystem
     public class ValheimEnchantmentSystem : BaseUnityPlugin
     {
         private const string GUID = "kg.ValheimEnchantmentSystem";
-        private const string PLUGIN_NAME = "Valheim Enchantment System"; 
-        private const string PLUGIN_VERSION = "1.6.9";
-         
-       
-                
+        private const string PLUGIN_NAME = "Valheim Enchantment System";
+        private const string PLUGIN_VERSION = "1.7.1";
         
         public static ValheimEnchantmentSystem _thistype;  
         public static AssetBundle _asset; 
         public static ConfigFile SyncedConfig;
         public static ConfigFile ItemConfig;
-        public static string ConfigFolder;  
-        public static readonly Harmony Harmony = new(GUID);  
-        public static readonly ConfigSync ConfigSync = new(GUID) 
+        public static string ConfigFolder;
+        public static readonly Harmony Harmony = new(GUID);
+        public static readonly ConfigSync ConfigSync = new(GUID)
         {  
-            DisplayName = GUID, ModRequired = true,  
+            DisplayName = GUID, ModRequired = true,
             MinimumRequiredVersion = PLUGIN_VERSION, CurrentVersion = PLUGIN_VERSION,
             IsLocked = true  
         };
         private enum WorkingAs { Client, Server }
         public static bool NoGraphics;
-         
+        
         private void Awake()
-        {
+        { 
             NoGraphics = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null;
             _thistype = this;
             WorkingAs WorkingAsType = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null ? WorkingAs.Server : WorkingAs.Client;
