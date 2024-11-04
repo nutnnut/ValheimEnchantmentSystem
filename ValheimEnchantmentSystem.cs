@@ -13,19 +13,19 @@ namespace kg.ValheimEnchantmentSystem
     {
         private const string GUID = "kg.ValheimEnchantmentSystem";
         private const string PLUGIN_NAME = "Valheim Enchantment System";
-        private const string PLUGIN_VERSION = "1.7.1";
+        private const string PLUGIN_VERSION = "1.7.2";
         
         public static ValheimEnchantmentSystem _thistype;  
         public static AssetBundle _asset; 
-        public static ConfigFile SyncedConfig;
+        public static ConfigFile SyncedConfig; 
         public static ConfigFile ItemConfig;
-        public static string ConfigFolder;
+        public static string ConfigFolder; 
         public static readonly Harmony Harmony = new(GUID);
         public static readonly ConfigSync ConfigSync = new(GUID)
         {  
             DisplayName = GUID, ModRequired = true,
             MinimumRequiredVersion = PLUGIN_VERSION, CurrentVersion = PLUGIN_VERSION,
-            IsLocked = true  
+            IsLocked = true   
         };
         private enum WorkingAs { Client, Server }
         public static bool NoGraphics;

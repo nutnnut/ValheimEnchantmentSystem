@@ -163,8 +163,9 @@ public static class SettingsUI
             VES_UI._enchantmentAnimationDuration.Value = _enchantmentAnimationDuration_Internal;
             Notifications_UI._filterConfig.Value = _filterConfig_Internal;
             Notifications_UI._duration.Value = _notificationDuration_Internal;
-            Enchantment_VFX.UpdateGrid();
+            Enchantment_VFX.UpdateGrid(); 
             Enchantment_VFX._enableHotbarVisual.ConfigFile.Save();
+            this.Saved?.Invoke();
         }
     }
 }
