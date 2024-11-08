@@ -1,9 +1,10 @@
 {
-    "name": "Valheim_Enchantment_System",
-    "version_number": "1.6.8",
-    "website_url": "https://kg.sayless.eu/ves/",
-    "description": "Mod brings old MMORPG's equipment enchantment experience to Valheim",
+    "name": "Chaos_Valheim_Enchantment_System",
+    "version_number": "0.1.7",
+    "website_url": "https://github.com/nutnnut/ValheimEnchantmentSystem",
+    "description": "Mod brings old MMORPG's equipment enchantment experience to Valheim. Now with randomized stats",
     "dependencies": [
-        "denikson-BepInExPack_Valheim-5.4.2202"
+        "denikson-BepInExPack_Valheim-5.4.2202",
+		"Tekla-JsonDotNet-13.0.1"
     ]
 }

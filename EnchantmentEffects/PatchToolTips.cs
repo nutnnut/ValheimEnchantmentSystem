@@ -8,8 +8,7 @@ using static kg.ValheimEnchantmentSystem.Enchantment_Core;
 
 namespace kg.ValheimEnchantmentSystem.EnchantmentEffects;
 
-[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData),
-    typeof(int), typeof(bool), typeof(float))]
+[HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetTooltip), typeof(ItemDrop.ItemData), typeof(int), typeof(bool), typeof(float), typeof(int))]
 [ClientOnlyPatch]
 public class PatchToolTips
 {
@@ -208,7 +207,7 @@ public class PatchToolTips
         [UsedImplicitly]
         private static void Postfix(InventoryGui __instance)
         {
-            Enchanted en = __instance.m_selectedRecipe.Value?.Data().Get<Enchanted>();
+            Enchanted en = __instance.m_selectedRecipe.ItemData?.Data().Get<Enchanted>();
             if (!en) return;
             string color = SyncedData.GetColor(en, out _, true).IncreaseColorLight();
             __instance.m_recipeName.text += $" (<color={color}>+{en!.level}</color>)";

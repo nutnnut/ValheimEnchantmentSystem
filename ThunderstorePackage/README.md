@@ -1,44 +1,36 @@
 ![](https://i.imgur.com/nRGWth9.png)
 
-Like my mods? Support me: `war3spells@gmail.com` (Paypal)
-
 ### Mod brings old MMORPG's equipment enchantment experience to Valheim.
+### This fork added new features like stats randomization and new stats
+- Stats
+	- Randomized bonus effects and multipliers with re-roll feature. <small>(not toggleable yet if you are here just for the new stats and VFX)</small>
+	- Changed defaults values to allow most bonus options to be rolled without touching any config
+	- Added ashland items to default config
+	- Attackspeed now also affects bow/crossbow/staff charge/reload speed
+	- New Stats
+		- +Etir Max
+		- +Etir Regen %
+		- -Attack Stamina Use %
+		- +Stagger Limit %
+		- +Stagger Recovery %
+		- +Weapon Skill level
+		- +Movement Skill level
+- UI
+	- Now preview failure/destroy chances
+	- More descriptive tooltips for bonus effects
+- VFX
+	- Changed default colors and variants to be more varied and colorful
+	- VFX applies to armors (still have issues with some items/variants)
 
-<details>
-  <summary><b><span style="color:aqua;font-weight:200;font-size:20px">
-    Patchnotes
-</span></b></summary>
-
-| Version       | Changes                                                                                                                                                                                                                                                                                               |
-|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1.6.8         | New Valheim version update                                                                                                                                                                                                                                                                            |
-| 1.6.5-1.6.7   | Bug fixes                                                                                                                                                                                                                                                                                             |
-| 1.6.4         | Removed wings and auras vfx's. Will add them as separated mod later<br/>Fixed for new valheim version                                                                                                                                                                                                 |
-| 1.6.3         | Bugfixes                                                                                                                                                                                                                                                                                              |
-| 1.6.2         | Enchant button now always visible<br/>Fixed a bug that was thworing errors when loggint ouu / shutting down the game<br/>Few UI QoL bugfixes                                                                                                                                                          |
-| 1.6.0         | Added ItemFailureType option: LevelDecrease, Destroy, Combined<br/>Changed the .yml structure of Chances. Now you need to specify success and destroy (optional) chance so it works in Combined mode                                                                                                  |
-| 1.5.4         | Added movement_speed enchant stat<br/>Fixed AUGA compatibility issues                                                                                                                                                                                                                                 |
-| 1.5.3         | Now Enchant UI also shows enchantment chance (including skill level bonus)<br/>Added F tier scrolls you can use in configs<br/>Added scroll combination mechanic (combine 5 or 3 scrolls into higher tier)<br/>Please remove EnchantmentReqs.yml and main config so it will renew itself and be fresh |
-| 1.5.2         | Small UI fixes                                                                                                                                                                                                                                                                                        |
-| 1.5.1         | Added world notifications when someone encnahts / fails an item. Can be disabled on serverside globally of locally in client settings tab                                                                                                                                                             |
-| 1.5.0         | Changed UI visuals<br/>Added inventory / hotbar UI vfx<br/>Added Enchantment Settings tab where you can disable VFX's<br/>Added additional effects section to enchantment colors, wings + auras for now<br/>Bugfixes                                                                                  |
-| 1.4.5         | Fixed FPS lag issues while playing on server with ServerCharacters<br/>Info UI fixes                                                                                                                                                                                                                  |
-| 1.4.4         | Added new stats: attack_speed and slash_wave<br/>Added new Info UI that will show item enchant stats,  and chance                                                                                                                                                                                     |
-| 1.4.2 - 1.4.3 | Added new config that allows you to enable VFX for armors                                                                                                                                                                                                                                             |
-| 1.4.1         | Fixed a bug with wrong player resistances                                                                                                                                                                                                                                                             |
-| 1.4.0         | Added new skill: Enchantment. Skill increases enchant success change<br/>Skill exp can be gained by consuming skill exp source orbs that are dropped from monsters with low chance (everything configurable)                                                                                          |
-| 1.3.5 - 1.3.6 | Fixed ItemStand items with enchantment bug                                                                                                                                                                                                                                                            |
-| 1.3.4         | Fixed localization not working                                                                                                                                                                                                                                                                        |
-| 1.3.3         | Added new enchantment modifiers to .yml (resistance_blunt, resistance_slash and so on)                                                                                                                                                                                                                |
-| 1.3.2         | VFX now correctly applies to items with multiple mesh parts (crossbows, modded items)                                                                                                                                                                                                                 |
-| 1.3.1         | Fixed small issue with UI updates when putting item in chest                                                                                                                                                                                                                                          |
-| 1.3.0         | Fixed wrong tooltip values bug<br/>Fixed incompatibility with Jewelcrafting + Extended inventory new visual slots                                                                                                                                                                                     |
-| 1.2.0         | Replaced Override .yml files to be able to affect group of items, instead of individual one<br/>Please remove Override_ yml files before start so they can be recteated                                                                                                                               |
-| 1.1.0         | Added 4 directories for Override + Requirements additional .yml files                                                                                                                                                                                                                                 |
-| 1.0.0         | Mod released                                                                                                                                                                                                                                                                                          |
-</details>
+![enter image description here](https://i.imgur.com/TZe9lfO.png)![enter image description here](https://i.imgur.com/Xe6BYzr.png)![enter image description here](https://i.imgur.com/KrWttnV.png)![enter image description here](https://i.imgur.com/scNbX9U.png)
 
 ## Guides and description here: https://kg.sayless.eu/ves/
 
-####  Questions or Comments, find KG in the Odin Plus Discord:
-[![https://i.imgur.com/XXP6HCU.png](https://i.imgur.com/XXP6HCU.png)](https://discord.gg/5gXNxNkUBt)
+- The guide is from the original mod, most are still relevant though
+- New default values are mostly self-explanatory and can be used as reference.
+
+## Credits & Special Thanks
+
+Forked and reuploaded with permission from [KGvalheim's Valheim Enchantment System](https://thunderstore.io/c/valheim/p/KGvalheim/Valheim_Enchantment_System/)
+
+Some inspiration and code for bonus effects taken with permission from [RandyKnapp's EpicLoot](https://thunderstore.io/c/valheim/p/RandyKnapp/EpicLoot/)
