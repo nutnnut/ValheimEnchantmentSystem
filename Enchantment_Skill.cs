@@ -14,4 +14,4 @@ public static class Enchantment_Skill
         new Skill("kg_Enchantment", "enchantment.png") { Configurable = true };
         SkillType_Enchantment = (Skills.SkillType)Mathf.Abs("kg_Enchantment".GetStableHashCode());
     }
-}
+} 

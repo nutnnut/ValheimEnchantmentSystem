@@ -1,8 +1,20 @@
-﻿using System.Globalization;
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
+using System.IO;
 using System.IO.Compression;
+using System.Linq;
+using System.Reflection;
+using System.Reflection.Emit;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
+using BepInEx;
+using BepInEx.Configuration;
+using HarmonyLib;
 using JetBrains.Annotations;
+using UnityEngine;
 using CompressionLevel = System.IO.Compression.CompressionLevel;
 
 namespace ServerSync;
@@ -48,7 +60,7 @@ public class SyncedConfigEntry<T> : OwnConfigEntryBase
 
 public abstract class CustomSyncedValueBase
 {
-	public event Action? ValueChanged;
+	public Action? ValueChanged;
 
 	public object? LocalBaseValue;
 
@@ -89,6 +101,8 @@ public sealed class CustomSyncedValue<T> : CustomSyncedValueBase
 		get => (T)BoxedValue!;
 		set => BoxedValue = value;
 	}
+
+	public void Update() => ValueChanged?.Invoke();
 
 	public CustomSyncedValue(ConfigSync configSync, string identifier, T value = default!, int priority = 0) : base(configSync, identifier, typeof(T), priority)
 	{
@@ -226,6 +240,7 @@ public class ConfigSync
 			}
 		};
 	}
+	
 
 	[HarmonyPatch(typeof(ZRpc), "HandlePackage")]
 	private static class SnatchCurrentlyHandlingRPC
@@ -823,6 +838,30 @@ public class ConfigSync
 				__state[Assembly.GetExecutingAssembly()] = bufferingSocket;
 			}
 		}
+		/*
+		235	0280	ldloc.1
+		236	0281	ldfld	class ISocket ZNetPeer::m_socket
+		237	0286	isinst	ZPlayFabSocket
+		238	028B	ldfld	string ZPlayFabSocket::m_remotePlayerId
+		 */
+		[HarmonyTranspiler]
+		private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+		{
+			CodeMatcher matcher = new(instructions);
+			var socketField = AccessTools.Field(typeof(ZNetPeer), "m_socket");
+			var remotePlayerIdField = AccessTools.Field(typeof(ZPlayFabSocket), "m_remotePlayerId");
+			matcher.MatchForward(false,
+					new CodeMatch(OpCodes.Ldloc_1), 
+					new CodeMatch(OpCodes.Ldfld, socketField),
+					new CodeMatch(OpCodes.Isinst),
+					new CodeMatch(OpCodes.Ldfld, remotePlayerIdField));
+			if (matcher.IsInvalid) return instructions;
+			matcher.SetAndAdvance(OpCodes.Ldstr, "none");
+			matcher.SetOpcodeAndAdvance(OpCodes.Nop);
+			matcher.SetOpcodeAndAdvance(OpCodes.Nop);
+			matcher.SetOpcodeAndAdvance(OpCodes.Nop);
+			return matcher.InstructionEnumeration();
+		}
 
 		[HarmonyPostfix]
 		private static void Postfix(Dictionary<Assembly, BufferingSocket> __state, ZNet __instance, ZRpc rpc)
@@ -1198,6 +1237,7 @@ public class VersionCheck
 		ModRequired = ConfigSync.ModRequired;
 	}
 
+	[SuppressMessage("ReSharper", "RedundantNameQualifier")]
 	private bool IsVersionOk()
 	{
 		if (ReceivedMinimumRequiredVersion == null || ReceivedCurrentVersion == null)
@@ -1208,15 +1248,16 @@ public class VersionCheck
 		bool otherVersionOk = new System.Version(ReceivedCurrentVersion) >= new System.Version(MinimumRequiredVersion);
 		return myVersionOk && otherVersionOk;
 	}
-
+	
+	[SuppressMessage("ReSharper", "RedundantNameQualifier")]
 	private string ErrorClient()
 	{
 		if (ReceivedMinimumRequiredVersion == null)
 		{
-			return $"Mod {DisplayName} must not be installed.";
+			return $"{DisplayName} is not installed on the server.";
 		}
 		bool myVersionOk = new System.Version(CurrentVersion) >= new System.Version(ReceivedMinimumRequiredVersion);
-		return myVersionOk ? $"Mod {DisplayName} requires maximum {ReceivedCurrentVersion}. Installed is version {CurrentVersion}." : $"Mod {DisplayName} requires minimum {ReceivedMinimumRequiredVersion}. Installed is version {CurrentVersion}.";
+		return myVersionOk ? $"{DisplayName} may not be higher than version {ReceivedCurrentVersion}. You have version {CurrentVersion}." : $"{DisplayName} needs to be at least version {ReceivedMinimumRequiredVersion}. You have version {CurrentVersion}.";
 	}
 
 	private string ErrorServer(ZRpc rpc)
@@ -1374,19 +1415,33 @@ public class VersionCheck
 		{
 			return;
 		}
+		bool failedCheck = false;
 		VersionCheck[] failedChecks = GetFailedClient();
 		if (failedChecks.Length > 0)
 		{
 			string error = string.Join("\n", failedChecks.Select(check => check.Error()));
 			__instance.m_connectionFailedError.text += "\n" + error;
+			failedCheck = true;
 		}
 
 		foreach (KeyValuePair<string, string> kv in notProcessedNames.OrderBy(kv => kv.Key))
 		{
 			if (!__instance.m_connectionFailedError.text.Contains(kv.Key))
 			{
-				__instance.m_connectionFailedError.text += $"\n{kv.Key} (Version: {kv.Value})";
+				__instance.m_connectionFailedError.text += $"\nServer expects you to have {kv.Key} (Version: {kv.Value}) installed.";
+				failedCheck = true;
 			}
+		}
+
+		if (failedCheck)
+		{
+			RectTransform panel = __instance.m_connectionFailedPanel.transform.Find("Image").GetComponent<RectTransform>();
+			panel.sizeDelta = panel.sizeDelta with { x = 675 };
+			__instance.m_connectionFailedError.ForceMeshUpdate();
+			float newHeight = __instance.m_connectionFailedError.renderedHeight + 105;
+			RectTransform button = panel.transform.Find("ButtonOk").GetComponent<RectTransform>();
+			button.anchoredPosition = new Vector2(button.anchoredPosition.x, button.anchoredPosition.y - (newHeight - panel.sizeDelta.y) / 2);
+			panel.sizeDelta = panel.sizeDelta with { y = newHeight };
 		}
 	}
 }

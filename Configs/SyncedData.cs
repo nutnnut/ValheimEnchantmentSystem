@@ -3,7 +3,6 @@ using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Misc;
 using ServerSync;
 using AutoISP;
-using static PrivilegeManager;
 
 namespace kg.ValheimEnchantmentSystem.Configs;
 

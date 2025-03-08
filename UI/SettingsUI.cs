@@ -13,9 +13,10 @@ public static class SettingsUI
         private static bool firstInit = true; 
  
         [UsedImplicitly]
-        private static void Postfix(FejdStartup __instance)
+        private static void Postfix(FejdStartup __instance) 
         {
-            if (!firstInit) return;
+            if (ValheimEnchantmentSystem.NoGraphics) return;
+            if (!firstInit) return; 
             firstInit = false;
             GameObject settingsPrefab = __instance.m_settingsPrefab;
             Transform gameplay = settingsPrefab.transform.Find("Panel/TabButtons/Gameplay");

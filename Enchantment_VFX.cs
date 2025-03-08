@@ -9,7 +9,7 @@ namespace kg.ValheimEnchantmentSystem;
 
 [VES_Autoload(VES_Autoload.Priority.Normal)]
 public static class Enchantment_VFX 
-{
+{ 
     private static GameObject HOTBAR_PART;
     private static readonly int TintColor = Shader.PropertyToID("_TintColor");
 
@@ -560,7 +560,7 @@ public static class Enchantment_VFX
     }
 
     public static void UpdateGrid()
-    {
+    { 
         HotkeyBar_UpdateIcons_Patch._needUpdateFrame = Time.frameCount + 1;
         InventoryGrid_UpdateGui_Patch._needUpdateFrame = Time.frameCount + 1;
     }

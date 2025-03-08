@@ -581,7 +581,7 @@ public static class Enchantment_Core
         [UsedImplicitly]
         private static void Postfix(Player __instance)
         {
-            if (!__instance.IsDead())
+            if (__instance == Player.m_localPlayer && !__instance.IsDead())
             {
                 float fixedDeltaTime = Time.fixedDeltaTime;
                 __instance.UpdateEnchantmentRegen(fixedDeltaTime);
