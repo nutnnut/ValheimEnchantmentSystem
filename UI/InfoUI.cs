@@ -28,6 +28,7 @@ public static class Info_UI
     [UsedImplicitly]
     private static void OnInit()
     {
+        if (ValheimEnchantmentSystem.NoGraphics) return;
         UI = UnityEngine.Object.Instantiate(
             ValheimEnchantmentSystem._asset.LoadAsset<GameObject>("kg_EnchantmentUI_Info"));
         Element = ValheimEnchantmentSystem._asset.LoadAsset<GameObject>("kg_EnchantmentUI_Info_Element");

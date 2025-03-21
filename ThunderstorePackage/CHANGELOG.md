@@ -1,4 +1,7 @@
 #### Version 0.1.7
+- Updated for Patch 0.220.4
+
+#### Version 0.1.7
 - Updated for Patch 0.219.13 - The Bog Witch
 
 #### Version 0.1.6

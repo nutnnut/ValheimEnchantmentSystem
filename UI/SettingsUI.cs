@@ -15,6 +15,7 @@ public static class SettingsUI
         [UsedImplicitly]
         private static void Postfix(FejdStartup __instance)
         {
+            if (ValheimEnchantmentSystem.NoGraphics) return;
             if (!firstInit) return;
             firstInit = false;
             GameObject settingsPrefab = __instance.m_settingsPrefab;
