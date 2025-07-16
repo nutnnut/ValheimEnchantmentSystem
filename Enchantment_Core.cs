@@ -107,16 +107,22 @@ public static class Enchantment_Core
             return reqs != null;
         }
 
-        private bool CheckRandom(out bool destroy)
+        private bool CheckRandom(bool preventBreak, out bool destroy)
         {
             float random = Random.Range(0f, 100f);
             SyncedData.Chance_Data chanceData = GetEnchantmentChanceData();
             float additionalChance = SyncedData.GetAdditionalEnchantmentChance();
             destroy = chanceData.destroy > 0 && Random.Range(0f, 100f) <= chanceData.destroy;
-            return random <= chanceData.success + additionalChance;
+            float chance = chanceData.success + additionalChance;
+            if (!preventBreak)
+            {
+                Int32.TryParse(SyncedData.BlessedScrollsAdditionalChance.Value.ToString(), out int addedChance);
+                chance += addedChance;
+            }
+            return random <= chance;
         }
 
-        public bool Enchant(bool safeEnchant, out string msg)
+        public bool Enchant(bool safeEnchant, bool blessPreventBreak, out string msg)
         {
             msg = "";
             if (!CanEnchant())
@@ -132,7 +138,7 @@ public static class Enchantment_Core
             }
             
             int prevLevel = level;
-            if (CheckRandom(out bool destroy))
+            if (CheckRandom(blessPreventBreak, out bool destroy))
             {
                 level++;
                 Save();

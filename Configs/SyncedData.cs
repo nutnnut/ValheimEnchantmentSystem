@@ -31,6 +31,8 @@ public static class SyncedData
             "The level until which enchantments won't destroy the item. Set to 0 to disable.");
         DropEnchantmentOnUpgrade = ValheimEnchantmentSystem.config("Enchantment", "DropEnchantmentOnUpgrade", false, "Drop enchantment on item upgrade.");
         ItemFailureType = ValheimEnchantmentSystem.config("Enchantment", "ItemFailureType", ItemDesctructionTypeEnum.LevelDecrease, "LevelDecrease will remove one level on fail, Destroy will destroy item on fail, Combined will use yaml destroy chance and success chance, CombinedEasy will keep or decrease level and never destroy");
+        BlessedScrollsPreventBreak = ValheimEnchantmentSystem.config("Enchantment", "BlessedScrollsPreventBreak", true, "Blessed enchant scrolls prevent breaking of item in case of failed enchant. If set to false enchanting chance is increased instead of preventing item break.");
+        BlessedScrollsAdditionalChance = ValheimEnchantmentSystem.config("Enchantment", "BlessedScrollsAdditionalChance", 25, "Enchanting chance added when using blessed enchant scrolls if the option to prevent breaking of an item in case of failed enchant is set to false.");
         AllowJewelcraftingMirrorCopyEnchant = ValheimEnchantmentSystem.config("Enchantment", "AllowJewelcraftingMirrorCopyEnchant", false, "Allow jewelcrafting to copy enchantment from one item to another using mirror.");
         AdditionalEnchantmentChancePerLevel = ValheimEnchantmentSystem.config("Enchantment", "AdditionalEnchantmentChancePerLevel", 0.06f, "Additional enchantment chance per level of Enchantment skill.");
         AllowVFXArmor = ValheimEnchantmentSystem.config("Enchantment", "AllowVFXArmor", false, "Allow VFX on armor.");
@@ -296,6 +298,8 @@ public static class SyncedData
     public static ConfigEntry<int> SafetyLevel;
     public static ConfigEntry<bool> DropEnchantmentOnUpgrade;
     public static ConfigEntry<ItemDesctructionTypeEnum> ItemFailureType;
+    public static ConfigEntry<bool> BlessedScrollsPreventBreak;
+    public static ConfigEntry<int> BlessedScrollsAdditionalChance;
     public static ConfigEntry<bool> AllowJewelcraftingMirrorCopyEnchant;
     public static ConfigEntry<float> AdditionalEnchantmentChancePerLevel;
     public static ConfigEntry<int> EnchantmentNotificationMinLevel;
