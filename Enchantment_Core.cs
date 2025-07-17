@@ -107,16 +107,23 @@ public static class Enchantment_Core
             return reqs != null;
         }
 
-        private bool CheckRandom(out bool destroy)
+        private bool CheckRandom(bool useBless, bool preventBreak, out bool destroy)
         {
             float random = Random.Range(0f, 100f);
+            Int32.TryParse(SyncedData.BlessedScrollsAdditionalChance.Value.ToString(), out int addedChance);
             SyncedData.Chance_Data chanceData = GetEnchantmentChanceData();
             float additionalChance = SyncedData.GetAdditionalEnchantmentChance();
-            destroy = chanceData.destroy > 0 && Random.Range(0f, 100f) <= chanceData.destroy;
-            return random <= chanceData.success + additionalChance;
+            int reduceDestroyChance = useBless ? addedChance : 0;
+            destroy = chanceData.destroy > 0 && Random.Range(0f, 100f) <= chanceData.destroy - reduceDestroyChance;
+            float chance = chanceData.success + additionalChance;
+            if (useBless && !preventBreak)
+            {                
+                chance += addedChance;
+            }
+            return random <= chance;
         }
 
-        public bool Enchant(bool safeEnchant, out string msg)
+        public bool Enchant(bool safeEnchant, bool blessPreventBreak, out string msg)
         {
             msg = "";
             if (!CanEnchant())
@@ -132,7 +139,7 @@ public static class Enchantment_Core
             }
             
             int prevLevel = level;
-            if (CheckRandom(out bool destroy))
+            if (CheckRandom(safeEnchant, blessPreventBreak, out bool destroy))
             {
                 level++;
                 Save();
@@ -144,7 +151,7 @@ public static class Enchantment_Core
                 return true;
             }
             
-            if (SyncedData.SafetyLevel.Value <= level && !safeEnchant)
+            if (SyncedData.SafetyLevel.Value <= level && (!safeEnchant || (safeEnchant && !blessPreventBreak)))
             {
                 Notifications_UI.NotificationItemResult notification;
                 switch (SyncedData.ItemFailureType.Value)
