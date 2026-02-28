@@ -1,5 +1,6 @@
 #### Version 0.2.0
-- Merged new features from kg's repo
+- Merged new features from kg's repo (untested, but the game launches)
+- Updated for Patch 0.221.12
 
 #### Version 0.1.8
 - Updated for Patch 0.220.4
