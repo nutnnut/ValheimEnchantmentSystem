@@ -1,0 +1,16 @@
+{
+  "planPath": "docs/plans/2026-02-28-upstream-merge-valheim-update-toggles.md",
+  "tasks": [
+    {"id": 1, "subject": "Task 1: Run git merge kg/kg and take upstream binary assets", "status": "pending"},
+    {"id": 2, "subject": "Task 2: Resolve ValheimEnchantmentSystem.cs conflict", "status": "pending", "blockedBy": [1]},
+    {"id": 3, "subject": "Task 3: Resolve Configs/SyncedData.cs conflict", "status": "pending", "blockedBy": [1]},
+    {"id": 4, "subject": "Task 4: Resolve Enchantment_Core.cs conflict", "status": "pending", "blockedBy": [1]},
+    {"id": 5, "subject": "Task 5: Resolve UI/MainUI.cs conflict", "status": "pending", "blockedBy": [1]},
+    {"id": 6, "subject": "Task 6: Resolve SettingsUI.cs and translations/English.yml conflicts", "status": "pending", "blockedBy": [1]},
+    {"id": 7, "subject": "Task 7: Build and commit the merge", "status": "pending", "blockedBy": [2, 3, 4, 5, 6]},
+    {"id": 8, "subject": "Task 8: Update Valheim game assemblies and fix API breakage", "status": "pending", "blockedBy": [7]},
+    {"id": 9, "subject": "Task 9: Add randomization config entries to SyncedData", "status": "pending", "blockedBy": [8]},
+    {"id": 10, "subject": "Task 10: Update GetRandomizedMultiplier to use configs and commit", "status": "pending", "blockedBy": [9]}
+  ],
+  "lastUpdated": "2026-02-28T00:00:00Z"
+}
