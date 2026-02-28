@@ -1,4 +1,5 @@
-﻿using JetBrains.Annotations;
+﻿using ItemManager;
+using JetBrains.Annotations;
 
 namespace kg.ValheimEnchantmentSystem.Misc;
 
@@ -12,7 +13,14 @@ public static class External_AsmLoad
     }
     private static void LoadAsm(string name)
     {
-        Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream("kg.ValheimEnchantmentSystem.Resources." + name + ".dll")!;
+        var manifestResourceNames = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceNames();
+        if (manifestResourceNames.Length == 0)
+        {
+            Utils.print("No resources found", ConsoleColor.Red);
+            return;
+        }
+        string resourceName = manifestResourceNames.Single(str => str.EndsWith(name + ".dll"));
+        using System.IO.Stream stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName);
         byte[] buffer = new byte[stream.Length];
         // ReSharper disable once MustUseReturnValue
         stream.Read(buffer, 0, buffer.Length); 
@@ -26,4 +34,6 @@ public static class External_AsmLoad
             Utils.print($"Error loading {name} assembly\n:{ex}", ConsoleColor.Red);
         }
     }
+
+
 }

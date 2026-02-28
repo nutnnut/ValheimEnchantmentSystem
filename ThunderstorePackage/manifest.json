@@ -1,6 +1,6 @@
 {
     "name": "Chaos_Valheim_Enchantment_System",
-    "version_number": "0.1.8",
+    "version_number": "0.2.0",
     "website_url": "https://github.com/nutnnut/ValheimEnchantmentSystem",
     "description": "Mod brings old MMORPG's equipment enchantment experience to Valheim. Now with randomized stats",
     "dependencies": [

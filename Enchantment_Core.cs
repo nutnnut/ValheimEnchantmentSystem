@@ -33,7 +33,7 @@ public static class Enchantment_Core
 
     public static IEnumerator FrameSkipEquip(ItemDrop.ItemData weapon)
     {
-        if (!Player.m_localPlayer.IsItemEquiped(weapon)) yield break;
+        if (!Player.m_localPlayer.IsItemEquiped(weapon) || !weapon.IsWeapon()) yield break;
         Player.m_localPlayer.UnequipItem(weapon);
         yield return new WaitForEndOfFrame();
         yield return new WaitForEndOfFrame();
@@ -41,8 +41,8 @@ public static class Enchantment_Core
         yield return new WaitForEndOfFrame();
         yield return new WaitForEndOfFrame();
         yield return new WaitForEndOfFrame();
-        //if (Player.m_localPlayer && Player.m_localPlayer.m_inventory.ContainsItem(weapon))
-        //    Player.m_localPlayer?.EquipItem(weapon);
+        if (Player.m_localPlayer && Player.m_localPlayer.m_inventory.ContainsItem(weapon))
+            Player.m_localPlayer?.EquipItem(weapon);
     }
 
     public static class EquipmentEffectCache
@@ -257,13 +257,20 @@ public static class Enchantment_Core
             return reqs != null;
         }
 
-        private bool CheckRandom(out bool destroy)
+        private bool CheckRandom(bool useBless, bool preventBreak, out bool destroy)
         {
             float random = Random.Range(0f, 100f);
+            Int32.TryParse(SyncedData.BlessedScrollsAdditionalChance.Value.ToString(), out int addedChance);
             SyncedData.Chance_Data chanceData = GetEnchantmentChanceData();
             float additionalChance = SyncedData.GetAdditionalEnchantmentChance();
-            destroy = chanceData.destroy > 0 && Random.Range(0f, 100f) <= chanceData.destroy;
-            return random <= chanceData.success + additionalChance;
+            int reduceDestroyChance = useBless ? addedChance : 0;
+            destroy = chanceData.destroy > 0 && Random.Range(0f, 100f) <= chanceData.destroy - reduceDestroyChance;
+            float chance = chanceData.success + additionalChance;
+            if (useBless && !preventBreak)
+            {                
+                chance += addedChance;
+            }
+            return random <= chance;
         }
 
         public bool Reroll(bool safeEnchant, out string msg)
@@ -290,12 +297,12 @@ public static class Enchantment_Core
             }
 
             bool destroy = Random.Range(0f, 100f) <= GetPrevEnchantmentChance(this).destroy;
-            msg = HandleFailedEnchant(safeEnchant, level, destroy);
+            msg = HandleFailedEnchant(safeEnchant, false, level, destroy);
 
             return false;
         }
 
-        public bool Enchant(bool safeEnchant, out string msg)
+        public bool Enchant(bool safeEnchant, bool blessPreventBreak, out string msg)
         {
             msg = "";
             if (!CanEnchant())
@@ -311,7 +318,7 @@ public static class Enchantment_Core
             }
 
             int prevLevel = level;
-            if (CheckRandom(out bool destroy))
+            if (CheckRandom(safeEnchant, blessPreventBreak, out bool destroy))
             {
                 string oldSuffix = GenerateAsteriskSuffix();
                 EnchantLevelUp();
@@ -321,16 +328,16 @@ public static class Enchantment_Core
                 return true;
             }
 
-            msg = HandleFailedEnchant(safeEnchant, level, destroy);
+            msg = HandleFailedEnchant(safeEnchant, blessPreventBreak, level, destroy);
 
             return false;
         }
 
-        private string HandleFailedEnchant(bool safeEnchant, int prevLevel, bool destroy)
+        private string HandleFailedEnchant(bool safeEnchant, bool blessPreventBreak, int prevLevel, bool destroy)
         {
             string msg;
             string oldSuffix = GenerateAsteriskSuffix();
-            if (SyncedData.SafetyLevel.Value <= level && !safeEnchant)
+            if (SyncedData.SafetyLevel.Value <= level && (!safeEnchant || (safeEnchant && !blessPreventBreak)))
             {
                 Notifications_UI.NotificationItemResult notification;
                 switch (SyncedData.ItemFailureType.Value)
@@ -341,7 +348,7 @@ public static class Enchantment_Core
                         msg = "$enchantment_fail_leveldown".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix, level.ToString() + GenerateAsteriskSuffix());
                         notification = Notifications_UI.NotificationItemResult.LevelDecrease;
                         break;
-                    case SyncedData.ItemDesctructionTypeEnum.Destroy:
+                    case SyncedData.ItemDesctructionTypeEnum.Destroy: 
                         Player.m_localPlayer.UnequipItem(Item);
                         Player.m_localPlayer.m_inventory.RemoveItem(Item);
                         msg = "$enchantment_fail_destroyed".Localize(Item.m_shared.m_name.Localize(), prevLevel.ToString() + oldSuffix);
@@ -362,7 +369,7 @@ public static class Enchantment_Core
                         }
                         break;
                     case SyncedData.ItemDesctructionTypeEnum.CombinedEasy:
-                        notification = destroy ? Notifications_UI.NotificationItemResult.LevelDecrease : Notifications_UI.NotificationItemResult.LevelDecrease;
+                        notification = Notifications_UI.NotificationItemResult.LevelDecrease;
                         if (destroy)
                         {
                             EnchantLevelDown();

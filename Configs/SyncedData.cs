@@ -33,7 +33,10 @@ public static class SyncedData
     {
         SafetyLevel = ValheimEnchantmentSystem.config("Enchantment", "SafetyLevel", 3,
             "The level until which enchantments won't destroy the item. Set to 0 to disable.");
+        DropEnchantmentOnUpgrade = ValheimEnchantmentSystem.config("Enchantment", "DropEnchantmentOnUpgrade", false, "Drop enchantment on item upgrade.");
         ItemFailureType = ValheimEnchantmentSystem.config("Enchantment", "ItemFailureType", ItemDesctructionTypeEnum.CombinedEasy, "LevelDecrease - downgrade level by 1 on failure\nDestroy - destroy item on failure\nCombined - uses yaml, downgrade or destroy on failure\nCombinedEasy - uses yaml, no change or downgrade on failure");
+        BlessedScrollsPreventBreak = ValheimEnchantmentSystem.config("Enchantment", "BlessedScrollsPreventBreak", true, "Blessed enchant scrolls prevent breaking of item in case of failed enchant. If set to false enchanting chance is increased instead of preventing item break.");
+        BlessedScrollsAdditionalChance = ValheimEnchantmentSystem.config("Enchantment", "BlessedScrollsAdditionalChance", 25, "Enchanting chance added when using blessed enchant scrolls if the option to prevent breaking of an item in case of failed enchant is set to false.");
         AllowJewelcraftingMirrorCopyEnchant = ValheimEnchantmentSystem.config("Enchantment", "AllowJewelcraftingMirrorCopyEnchant", false, "Allow jewelcrafting to copy enchantment from one item to another using mirror.");
         AdditionalEnchantmentChancePerLevel = ValheimEnchantmentSystem.config("Enchantment", "AdditionalEnchantmentChancePerLevel", 0.00f, "Additional enchantment chance per level of Enchantment skill. (ex. 0.05 = 5% at max level)");
         AllowVFXArmor = ValheimEnchantmentSystem.config("Enchantment", "AllowVFXArmor", true, "Allow VFX on armor.");
@@ -387,7 +390,10 @@ public static class SyncedData
     public enum ItemDesctructionTypeEnum{ LevelDecrease, Destroy, Combined, CombinedEasy }
     
     public static ConfigEntry<int> SafetyLevel;
+    public static ConfigEntry<bool> DropEnchantmentOnUpgrade;
     public static ConfigEntry<ItemDesctructionTypeEnum> ItemFailureType;
+    public static ConfigEntry<bool> BlessedScrollsPreventBreak;
+    public static ConfigEntry<int> BlessedScrollsAdditionalChance;
     public static ConfigEntry<bool> AllowJewelcraftingMirrorCopyEnchant;
     public static ConfigEntry<float> AdditionalEnchantmentChancePerLevel;
     public static ConfigEntry<int> EnchantmentNotificationMinLevel;
@@ -436,7 +442,7 @@ public static class SyncedData
     private static readonly Dictionary<string, Dictionary<int, VFX_Data>> OPTIMIZED_Overrides_EnchantmentColors = new();
     private static readonly Dictionary<string, Dictionary<int, Stat_Data>> OPTIMIZED_Overrides_EnchantmentStats = new();
 
-    private static List<FieldInfo> _stat_Data_Cached_Fields = AccessTools.GetDeclaredFields(typeof(Stat_Data)).Where(x => x.FieldType.IsValueType).ToList();
+    private static readonly List<FieldInfo> _stat_Data_Cached_Fields = AccessTools.GetDeclaredFields(typeof(Stat_Data)).Where(x => x.FieldType.IsValueType).ToList();
     public partial class Stat_Data
     {
         private bool ShouldShow() => _stat_Data_Cached_Fields.Any(x => !x.GetValue(this).Equals(Activator.CreateInstance(x.FieldType)));
@@ -444,8 +450,8 @@ public static class SyncedData
         public List<HitData.DamageModPair> GetResistancePairs()
         {
             if (cached_resistance_pairs != null) return cached_resistance_pairs;
-            cached_resistance_pairs = new()
-            {
+            cached_resistance_pairs =
+            [
                 new() { m_type = HitData.DamageType.Blunt, m_modifier = resistance_blunt },
                 new() { m_type = HitData.DamageType.Slash, m_modifier = resistance_slash },
                 new() { m_type = HitData.DamageType.Pierce, m_modifier = resistance_pierce },
@@ -455,8 +461,8 @@ public static class SyncedData
                 new() { m_type = HitData.DamageType.Frost, m_modifier = resistance_frost },
                 new() { m_type = HitData.DamageType.Lightning, m_modifier = resistance_lightning },
                 new() { m_type = HitData.DamageType.Poison, m_modifier = resistance_poison },
-                new() { m_type = HitData.DamageType.Spirit, m_modifier = resistance_spirit },
-            };
+                new() { m_type = HitData.DamageType.Spirit, m_modifier = resistance_spirit }
+            ];
             cached_resistance_pairs.RemoveAll(x => x.m_modifier == HitData.DamageModifier.Normal);
             return cached_resistance_pairs;
         }
@@ -645,7 +651,7 @@ public static class SyncedData
     {
         [SerializeField] public string prefab;
         [SerializeField] public int amount;
-        public SingleReq() { }
+        public SingleReq(){}
         public SingleReq (string prefab, int amount) { this.prefab = prefab; this.amount = amount; }
         public bool IsValid() => !string.IsNullOrEmpty(prefab) && amount > 0 && ZNetScene.instance.GetPrefab(prefab);
         public void Serialize  (ref ZPackage pkg) => throw new NotImplementedException();

@@ -1,3 +1,6 @@
+#### Version 0.2.0
+- Merged new features from kg's repo
+
 #### Version 0.1.8
 - Updated for Patch 0.220.4
 

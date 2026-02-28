@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using kg.ValheimEnchantmentSystem.Configs;
 using kg.ValheimEnchantmentSystem.Misc;
 using UnityEngine.Audio;
+using YamlDotNet.Core.Tokens;
 
 namespace kg.ValheimEnchantmentSystem.UI;
 
@@ -307,9 +308,27 @@ public static class VES_UI
             if (_reroll)
             {
                 enchanted = en.Reroll(_useBless, out msg);
-            } else
+            }
+            else
             {
-                enchanted = en.Enchant(_useBless, out msg);
+                enchanted = en.Enchant(_useBless, SyncedData.BlessedScrollsPreventBreak.Value, out msg);
+                string dropName = _currentItem.m_dropPrefab
+                    ? _currentItem.m_dropPrefab.name
+                    : Utils.GetPrefabNameByItemName(_currentItem.m_shared.m_name);
+                if (SyncedData.GetReqs(dropName) is { } xpReqs)
+                {
+                    int exp = 0;
+                    switch (xpReqs.enchant_prefab.prefab.ToString().Substring(xpReqs.enchant_prefab.prefab.Length - 2))
+                    {
+                        case "_F": exp = 2; break;
+                        case "_D": exp = 7; break;
+                        case "_C": exp = 14; break;
+                        case "_B": exp = 23; break;
+                        case "_A": exp = 34; break;
+                        case "_S": exp = 47; break;
+                    }
+                    Utils.IncreaseSkillEXP(Enchantment_Skill.SkillType_Enchantment, exp);
+                }
             }
 
             Item_Text.text = msg;
@@ -412,32 +431,42 @@ public static class VES_UI
 
     private static void UseBless_ButtonClick()
     {
-        if (_currentItem == null) return; 
-        _useBless = !_useBless;
-        UseBless_Icon.gameObject.SetActive(_useBless);
-
-        SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(_currentItem.m_dropPrefab?.name);
-
-        SyncedData.SingleReq singleReq = _useBless ? reqs.blessed_enchant_prefab : reqs.enchant_prefab;
-        if (singleReq.IsValid())
+        try
         {
-            GameObject enchant_item = ZNetScene.instance.GetPrefab(singleReq.prefab);
-            Scroll_Text.text = enchant_item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name.Localize() + " <color=yellow>x" + singleReq.amount + "</color>";
-            Scroll_Text.color = Utils.CustomCountItemsNoLevel(singleReq.prefab) >= singleReq.amount ? Color.white : Color.red;
-            Scroll_Icon.sprite = enchant_item.GetComponent<ItemDrop>().m_itemData.GetIcon();
-            Scroll_Trail.gameObject.SetActive(true);
-            Scroll_Trail.color = _useBless ? new Color(1f,1f,0f,0.8f) : new Color(1f, 1f, 1f, 0.8f);
+            if (_currentItem == null) return;
+            Enchantment_Core.Enchanted en = _currentItem.Data().Get<Enchantment_Core.Enchanted>();
+            if (en && en!.GetEnchantmentChance() <= 0) return;
+
+            _useBless = !_useBless;
+
+            UseBless_Icon.gameObject.SetActive(_useBless);
             UpdateChanceText();
+
+            SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(_currentItem.m_dropPrefab?.name);
+
+            SyncedData.SingleReq singleReq = _useBless ? reqs.blessed_enchant_prefab : reqs.enchant_prefab;
+            if (singleReq.IsValid())
+            {
+                GameObject enchant_item = ZNetScene.instance.GetPrefab(singleReq.prefab);
+                Scroll_Text.text = enchant_item.GetComponent<ItemDrop>().m_itemData.m_shared.m_name.Localize() + " <color=yellow>x" + singleReq.amount + "</color>";
+                Scroll_Text.color = Utils.CustomCountItemsNoLevel(singleReq.prefab) >= singleReq.amount ? Color.white : Color.red;
+                Scroll_Icon.sprite = enchant_item.GetComponent<ItemDrop>().m_itemData.GetIcon();
+                Scroll_Trail.gameObject.SetActive(true);
+                Scroll_Trail.color = _useBless ? new Color(1f, 1f, 0f, 0.8f) : new Color(1f, 1f, 1f, 0.8f);
+            }
+            else
+            {
+                Scroll_Text.text = "$enchantment_noenchantitems".Localize();
+                Scroll_Text.color = Color.red;
+                Scroll_Icon.sprite = Default_QuestionMark;
+                Scroll_Trail.gameObject.SetActive(false);
+                Scroll_Trail.color = new Color(1f, 1f, 1f, 0.8f);
+            }
         }
-        else
+        catch (Exception)
         {
-            Scroll_Text.text = "$enchantment_noenchantitems".Localize();
-            Scroll_Text.color = Color.red;
-            Scroll_Icon.sprite = Default_QuestionMark;
-            Scroll_Trail.gameObject.SetActive(false);
-            Scroll_Trail.color = new Color(1f, 1f, 1f, 0.8f);
-        }
-        
+            throw;
+        }        
     }
 
     private static void Reroll_ButtonClick()
@@ -483,7 +512,7 @@ public static class VES_UI
         if (!Player.m_localPlayer.m_inventory.ContainsItem(item)) return;
         SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(item.m_dropPrefab?.name);
         if (reqs == null) return;
-        
+
         if (!Other_Mods_APIs.CanEnchant(item, out string msg))
         {
             Item_Text.text = msg;
@@ -491,9 +520,15 @@ public static class VES_UI
             return;
         }
 
-        int enchantSkillLvl = (int)Player.m_localPlayer.GetSkillLevel(Enchantment_Skill.SkillType_Enchantment);
-        if (enchantSkillLvl < reqs.required_skill) return;
-        
+        int enchantSkillLvl = (int)Player.m_localPlayer.GetSkillLevel(Enchantment_Skill.SkillType_Enchantment); // Get the enchantment skill level and compare it with the required skill level
+        if (enchantSkillLvl < reqs.required_skill)
+        {
+            msg = "$enchantment_missingskill".Localize(item.m_shared.m_name.Localize(), reqs.required_skill.ToString(), enchantSkillLvl.ToString());
+            Item_Text.text = msg;
+            Item_Text.color = Color.red;
+            return;
+        }
+
         Enchantment_Core.Enchanted en = item.Data().Get<Enchantment_Core.Enchanted>();
         if(en && en!.GetEnchantmentChance() <= 0 && en!.GetRerollChance() <= 0) return;
 
@@ -591,7 +626,7 @@ public static class VES_UI
             string color = _useBless ? "yellow" : "red";
             Destroy_Chance_Text.text = $"<color={color}>{failure}%</color>";
         }
-        
+
     }
 
     private static void Show()
