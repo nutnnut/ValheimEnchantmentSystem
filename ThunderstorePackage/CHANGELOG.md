@@ -1,3 +1,6 @@
+#### Version 0.2.3
+- remove accidental dll
+
 #### Version 0.2.2
 - (no gameplay changes)
 - Removed ILRepack - Integrated ItemDataManager source directly, removed DLL dependency
