@@ -13,7 +13,7 @@ namespace kg.ValheimEnchantmentSystem
     {
         private const string GUID = "kg.ValheimEnchantmentSystem";
         private const string PLUGIN_NAME = "Chaos Valheim Enchantment System";
-        private const string PLUGIN_VERSION = "0.2.0";
+        private const string PLUGIN_VERSION = "0.2.2";
 
 
 
@@ -27,7 +27,7 @@ namespace kg.ValheimEnchantmentSystem
         public static readonly ConfigSync ConfigSync = new(GUID)
         {  
             DisplayName = GUID, ModRequired = true,
-            MinimumRequiredVersion = PLUGIN_VERSION, CurrentVersion = PLUGIN_VERSION,
+            MinimumRequiredVersion = "0.2.2", CurrentVersion = "0.2.2",
             IsLocked = true   
         };
         private enum WorkingAs { Client, Server }
@@ -37,6 +37,7 @@ namespace kg.ValheimEnchantmentSystem
         { 
             NoGraphics = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null;
             _thistype = this;
+            AutoISP.ISP_Patcher.Init();
             WorkingAs WorkingAsType = SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null ? WorkingAs.Server : WorkingAs.Client;
             JSON.Parameters = new JSONParameters
             {  

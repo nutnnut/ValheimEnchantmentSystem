@@ -58,6 +58,7 @@
     <Compile Include="Items_Structures\ScrollItems.cs" />
     <Compile Include="Items_Structures\BuildPieces.cs" />
     <Compile Include="Managers\AnimationSpeedManager.cs" />
+    <Compile Include="Managers\ItemDataManager.cs" />
     <Compile Include="Managers\LocalizationManager.cs" />
     <Compile Include="Misc\Attributes.cs" />
     <Compile Include="Misc\Convertions.cs" />
@@ -268,9 +269,7 @@
     </Reference>
     <Reference Include="fastJSON">
       <HintPath>Libs\fastJSON.dll</HintPath>
-    </Reference>
-    <Reference Include="ItemDataManager">
-      <HintPath>Libs\ItemDataManager.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="Jewelcrafting">
       <HintPath>Libs\JewelcraftingAPI.dll</HintPath>
@@ -340,16 +339,10 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="Copy" AfterTargets="ILRepack">
+  <Target Name="Copy" AfterTargets="Build">
     <Exec Command="pdb2mdb.exe &quot;$(TargetDir)$(AssemblyName).dll&quot;" />
     <Exec Command="copy /Y &quot;$(TargetDir)$(AssemblyName).dll&quot; &quot;$(ProjectDir)ThunderstorePackage\plugins\ChaosValheimEnchantmentSystem\$(AssemblyName).dll&quot;" />
-  </Target>
-  <Import Project="packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets'))" />
+    <Exec Command="copy /Y &quot;$(TargetDir)fastJSON.dll&quot; &quot;$(ProjectDir)ThunderstorePackage\plugins\ChaosValheimEnchantmentSystem\fastJSON.dll&quot;" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.

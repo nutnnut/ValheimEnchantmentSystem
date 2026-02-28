@@ -1,3 +1,7 @@
+#### Version 0.2.2
+- (no gameplay changes)
+- Removed ILRepack - Integrated ItemDataManager source directly, removed DLL dependency
+
 #### Version 0.2.0
 - Merged new features from kg's repo (untested, but the game launches)
 - Updated for Patch 0.221.12
