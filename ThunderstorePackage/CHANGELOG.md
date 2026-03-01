@@ -1,3 +1,6 @@
+#### Version 0.2.4
+- Fix some bonuses also applying to enemies/unintended entities
+
 #### Version 0.2.3
 - remove accidental dll
 

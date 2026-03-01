@@ -481,8 +481,11 @@ public static class Enchantment_Core
 
     public static double ModifyAttackSpeed(Character c, double speed)
     {
-        if (c != Player.m_localPlayer || !c.InAttack()) return speed;
-        return speed * (1.0f + Player.m_localPlayer.GetTotalEnchantedValue("attack_speed") / 100f);
+        if (c is Player player && c.InAttack())
+        {
+            return speed * (1.0f + player.GetTotalEnchantedValue("attack_speed") / 100f);
+        }
+        return speed;
     }
 }
 

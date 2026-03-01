@@ -19,8 +19,12 @@ public static class ModifyAttackStaminaUse_Patch
 [HarmonyPatch(typeof(ItemDrop.ItemData), nameof(ItemDrop.ItemData.GetDrawStaminaDrain))]
 public static class ModifyBowDrawStaminaUse_Patch
 {
-    public static void Postfix(Attack __instance, ref float __result)
+    public static void Postfix(ItemDrop.ItemData __instance, ref float __result)
     {
-        __result *= Player.m_localPlayer.GetTotalEnchantedMultiplierDecreaseMultiplicative("stamina_use_reduction_percent");
+        if (Player.m_localPlayer == null) return;
+        if (Player.m_localPlayer.m_inventory.ContainsItem(__instance))
+        {
+            __result *= Player.m_localPlayer.GetTotalEnchantedMultiplierDecreaseMultiplicative("stamina_use_reduction_percent");
+        }
     }
 }

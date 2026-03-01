@@ -15,7 +15,11 @@ namespace kg.ValheimEnchantmentSystem.EnchantmentEffects
         [UsedImplicitly]
         private static void Postfix(ItemDrop.ItemData __instance, ref float __result)
         {
-            __result /= 1.0f + Player.m_localPlayer.GetTotalEnchantedValue("attack_speed") / 100f;
+            if (Player.m_localPlayer == null) return;
+            if (Player.m_localPlayer.m_inventory.ContainsItem(__instance))
+            {
+                __result /= 1.0f + Player.m_localPlayer.GetTotalEnchantedValue("attack_speed") / 100f;
+            }
         }
     }
 
@@ -25,7 +29,10 @@ namespace kg.ValheimEnchantmentSystem.EnchantmentEffects
     {
         public static void Prefix(Attack __instance, ref float dt)
         {
-            dt *= 1.0f + Player.m_localPlayer.GetTotalEnchantedValue("attack_speed") / 100f;
+            if (__instance.m_character is Player player)
+            {
+                dt *= 1.0f + player.GetTotalEnchantedValue("attack_speed") / 100f;
+            }
         }
     }
 
@@ -37,7 +44,8 @@ namespace kg.ValheimEnchantmentSystem.EnchantmentEffects
         {
             if (skill == Skills.SkillType.Bows)
             {
-                float totalAttackSpeedBonus = Player.m_localPlayer.GetTotalEnchantedValue("attack_speed") / 100f;
+                float totalAttackSpeedBonus = __instance.GetTotalEnchantedValue("attack_speed") / 100f;
+                if (totalAttackSpeedBonus <= 0) return;
                 float drawTimeMultiplier = 1.0f / (1.0f + totalAttackSpeedBonus);
 
                 float originalDrawTime = (1.0f - __result) * 0.8f + 0.2f;
