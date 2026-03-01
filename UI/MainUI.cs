@@ -435,7 +435,7 @@ public static class VES_UI
         {
             if (_currentItem == null) return;
             Enchantment_Core.Enchanted en = _currentItem.Data().Get<Enchantment_Core.Enchanted>();
-            if (en && en!.GetEnchantmentChance() <= 0) return;
+            if (en && en!.GetEnchantmentChance() <= 0 && !_reroll) return; // Allow blessed reroll on max level
 
             _useBless = !_useBless;
 
