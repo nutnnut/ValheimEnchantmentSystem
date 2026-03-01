@@ -273,7 +273,7 @@ public static class Enchantment_Core
             return random <= chance;
         }
 
-        public bool Reroll(bool safeEnchant, out string msg)
+        public bool Reroll(bool safeEnchant, bool blessPreventBreak, out string msg)
         {
             msg = "";
             if (!CanReroll())
@@ -296,8 +296,8 @@ public static class Enchantment_Core
                 return true;
             }
 
-            bool destroy = Random.Range(0f, 100f) <= GetPrevEnchantmentChance(this).destroy;
-            msg = HandleFailedEnchant(safeEnchant, false, level, destroy);
+            bool destroy = !safeEnchant && Random.Range(0f, 100f) <= GetPrevEnchantmentChance(this).destroy;
+            msg = HandleFailedEnchant(safeEnchant, blessPreventBreak, level, destroy);
 
             return false;
         }

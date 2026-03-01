@@ -307,7 +307,7 @@ public static class VES_UI
             string msg;
             if (_reroll)
             {
-                enchanted = en.Reroll(_useBless, out msg);
+                enchanted = en.Reroll(_useBless, SyncedData.BlessedScrollsPreventBreak.Value, out msg);
             }
             else
             {
@@ -474,11 +474,12 @@ public static class VES_UI
         if (_currentItem == null) return;
         Enchantment_Core.Enchanted en = _currentItem.Data().Get<Enchantment_Core.Enchanted>();
         _reroll = !_reroll;
-        if (en.GetEnchantmentChance() <= 0) // For max level, only reroll is allowed
+        if (en != null && en.GetEnchantmentChance() <= 0) // For max level, only reroll is allowed
         {
             _reroll = true;
         }
         Reroll_Icon.gameObject.SetActive(_reroll);
+        Start_Text.text = _reroll ? "$enchantment_reroll".Localize() : "$enchantment_enchant".Localize();
 
         SyncedData.EnchantmentReqs reqs = SyncedData.GetReqs(_currentItem.m_dropPrefab?.name);
 
@@ -562,14 +563,19 @@ public static class VES_UI
         Item_Icon.sprite = item.GetIcon();
 
         UseBless_Transform.gameObject.SetActive(en?.level > 0);
-        UseBless_Icon.gameObject.SetActive(false);
+        UseBless_Icon.gameObject.SetActive(_useBless);
 
         Reroll_Transform.gameObject.SetActive(en?.level > 0);
-        Reroll_Icon.gameObject.SetActive(false);
+        Reroll_Icon.gameObject.SetActive(_reroll);
 
         if (en?.GetEnchantmentChance() <= 0) // max level
         {
-            Reroll_ButtonClick();
+            if (!_reroll)
+                Reroll_ButtonClick();
+        }
+        else
+        {
+            Start_Text.text = _reroll ? "$enchantment_reroll".Localize() : "$enchantment_enchant".Localize();
         }
 
         RectTransform Scroll_Rect = Scroll_Transform.GetComponent<RectTransform>();
@@ -583,7 +589,6 @@ public static class VES_UI
             Scroll_Icon.sprite = enchant_item.GetComponent<ItemDrop>().m_itemData.GetIcon();
             Scroll_Text.color = Utils.CustomCountItemsNoLevel(reqs.enchant_prefab.prefab) >= reqs.enchant_prefab.amount ? Color.white : Color.red;
             Start_Transform.gameObject.SetActive(true);
-            Start_Text.text = "$enchantment_enchant".Localize();
             Scroll_Trail.color = new Color(1f, 1f, 1f, 0.8f);
         }
         else
