@@ -333,7 +333,7 @@ public static class SyncedData
         var selectedStats = new Stat_Data();
         var multipliers = new List<EnchantmentEffect>();
         var possibleFields = typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance)
-                                   .Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float))
+                                   .Where(f => f.FieldType == typeof(int) || f.FieldType == typeof(float) || f.FieldType.IsEnum)
                                    .Where(f => Convert.ToDouble(f.GetValue(allStats)) != 0)
                                    .ToList();
 
@@ -367,6 +367,11 @@ public static class SyncedData
             if (UnityEngine.Random.value <= bonusMultiplierChance) // 10% chance to get double bonus
             {
                 floatMultiplier *= bonusMultiplier;
+            }
+
+            if (field.FieldType.IsEnum)
+            {
+                floatMultiplier = 1.0f;
             }
 
             multipliers.Add(new EnchantmentEffect(field.Name, floatMultiplier));
@@ -629,6 +634,11 @@ public static class SyncedData
                     else if (field.FieldType == typeof(float))
                     {
                         field.SetValue(multipliedStats, (float)newValue);
+                    }
+                    else if (field.FieldType.IsEnum)
+                    {
+                        if (multiplier > 0)
+                            field.SetValue(multipliedStats, field.GetValue(this));
                     }
                 }
             }
