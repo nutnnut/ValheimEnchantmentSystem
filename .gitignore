@@ -1,4 +1,4 @@
-﻿bin
+bin
 obj
 /packages
 Jewelcrafting.sln.DotSettings.user
@@ -6,3 +6,5 @@ Jewelcrafting.sln.DotSettings.user
 .vs
 Directory.Build.targets
 /GithubReadme/
+ref_assembly_valheim/
+ref_assembly_guiutils/

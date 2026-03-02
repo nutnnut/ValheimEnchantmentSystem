@@ -1,5 +1,7 @@
 #### Version 0.2.4
-- Fix some bonuses also applying to enemies/unintended entities
+- Fixed some bonuses also applying to enemies/unintended entities
+- Fixed not being to reroll when at max level
+- Fixed blessed reroll not preventing failedEnchant
 
 #### Version 0.2.3
 - remove accidental dll
