@@ -478,7 +478,7 @@ public static class SyncedData
             if (_sourceEffects == null) return $"<color={color}>•</color>";
             float mult = _sourceEffects.GetTotalFloat(fieldName);
             if (mult >= 2.0f - 1e-4f)  return $"<color={color}>◆</color>";
-            if (mult <  1.0f - 1e-4f)  return $"<color={color}>◦</color>";
+            if (mult <  1.0f - 1e-4f)  return $"<color={color}66>•</color>"; // 66 = low alpha / dim
             return $"<color={color}>•</color>";
         }
 
