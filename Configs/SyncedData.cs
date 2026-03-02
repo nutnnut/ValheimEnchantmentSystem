@@ -472,6 +472,16 @@ public static class SyncedData
             return cached_resistance_pairs;
         }
 
+        internal EnchantedItem _sourceEffects;
+        private string GetBullet(string fieldName, string color)
+        {
+            if (_sourceEffects == null) return $"<color={color}>•</color>";
+            float mult = _sourceEffects.GetTotalFloat(fieldName);
+            if (mult >= 2.0f - 1e-4f)  return $"<color={color}>◆</color>";
+            if (mult <  1.0f - 1e-4f)  return $"<color={color}>◦</color>";
+            return $"<color={color}>•</color>";
+        }
+
         private string cached_tooltip;
         public string BuildAdditionalStats(string color)
         {
@@ -482,52 +492,52 @@ public static class SyncedData
                 return cached_tooltip;
             }
             StringBuilder builder = new StringBuilder();
-            if (damage_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_bonusespercentdamage: +{damage_percentage}%");
-            if (damage_true > 0) builder.Append($"\n<color={color}>•</color> $enchantment_truedamage: +{damage_true}");
-            if (damage_true_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_truedamage: +{damage_true_percentage}%");
-            if (damage_fire > 0) builder.Append($"\n<color={color}>•</color> $inventory_fire: <color=#FFA500>+{damage_fire}</color>");
-            if (damage_fire_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_fire: <color=#FFA500>+{damage_fire_percentage}%</color>");
-            if (damage_blunt > 0) builder.Append($"\n<color={color}>•</color> $inventory_blunt: <color=#FFFF00>+{damage_blunt}</color>");
-            if (damage_blunt_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_blunt: <color=#FFFF00>+{damage_blunt_percentage}%</color>");
-            if (damage_slash > 0) builder.Append($"\n<color={color}>•</color> $inventory_slash: <color=#7F00FF>+{damage_slash}</color>");
-            if (damage_slash_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_slash: <color=#7F00FF>+{damage_slash_percentage}%</color>");
-            if (damage_pierce > 0) builder.Append($"\n<color={color}>•</color> $inventory_pierce: <color=#D499B9>+{damage_pierce}</color>");
-            if (damage_pierce_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_pierce: <color=#D499B9>+{damage_pierce_percentage}%</color>");
-            if (damage_chop > 0) builder.Append($"\n<color={color}>•</color> $enchantment_chopdamage: <color=#FFAF00>+{damage_chop}</color>");
-            if (damage_chop_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_chopdamage: <color=#FFAF00>+{damage_chop_percentage}%</color>");
-            if (damage_pickaxe > 0) builder.Append($"\n<color={color}>•</color> $enchantment_pickaxedamage: <color=#FF00FF>+{damage_pickaxe}</color>");
-            if (damage_pickaxe_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_pickaxedamage: <color=#FF00FF>+{damage_pickaxe_percentage}%</color>");
-            if (damage_frost > 0) builder.Append($"\n<color={color}>•</color> $inventory_frost: <color=#00FFFF>+{damage_frost}</color>");
-            if (damage_frost_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_frost: <color=#00FFFF>+{damage_frost_percentage}%</color>");
-            if (damage_lightning > 0) builder.Append($"\n<color={color}>•</color> $inventory_lightning: <color=#0000FF>+{damage_lightning}</color>");
-            if (damage_lightning_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_lightning: <color=#0000FF>+{damage_lightning_percentage}%</color>");
-            if (damage_poison > 0) builder.Append($"\n<color={color}>•</color> $inventory_poison: <color=#00FF00>+{damage_poison}</color>");
-            if (damage_poison_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_poison: <color=#00FF00>+{damage_poison_percentage}%</color>");
-            if (damage_spirit > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>+{damage_spirit}</color>");
-            if (damage_spirit_percentage > 0) builder.Append($"\n<color={color}>•</color> $inventory_spirit: <color=#FFFFA0>+{damage_spirit_percentage}%</color>");
-            if (attack_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_attackspeed: <color=#DF745D>+{attack_speed}%</color>");
-            if (movement_speed > 0) builder.Append($"\n<color={color}>•</color> $enchantment_movementspeed: <color=#DF745D>+{movement_speed}%</color>");
-            if (movement_skill > 0) builder.Append($"\n<color={color}>•</color> $enchantment_movement_skill: <color=#DF745D>+{movement_skill}</color>");
-            if (weapon_skill > 0) builder.Append($"\n<color={color}>•</color> $enchantment_matching_weapon_skill: <color=#FFA500>+{weapon_skill}</color>");
-            if (armor > 0) builder.Append($"\n<color={color}>•</color> $item_armor: <color=#808080>+{armor}</color>");
-            if (armor_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_bonusespercentarmor: <color=#808080>+{armor_percentage}%</color>");
-            if (durability > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability}</color>");
-            if (durability_percentage > 0) builder.Append($"\n<color={color}>•</color> $item_durability: <color=#7393B3>+{durability_percentage}%</color>");
-            if (max_hp > 0) builder.Append($"\n<color={color}>•</color> $se_health: <color=#ff8080ff>+{max_hp}</color>");
-            if (hp_regen > 0) builder.Append($"\n<color={color}>•</color> $se_healthregen: <color=#ff8080ff>+{hp_regen}/10s</color>");
-            if (stagger_limit_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_stagger_limit: <color=#dd9090ff>+{stagger_limit_percentage}%</color>");
-            if (stagger_recovery_percentage > 0) builder.Append($"\n<color={color}>•</color> $enchantment_stagger_recovery: <color=#dd9090ff>+{stagger_recovery_percentage}%</color>");
-            if (max_stamina > 0) builder.Append($"\n<color={color}>•</color> $se_stamina: <color=#ffff80ff>+{max_stamina}</color>");
-            if (stamina_regen > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen}/s</color>");
-            if (stamina_regen_percentage > 0) builder.Append($"\n<color={color}>•</color> $se_staminaregen: <color=#ffff80ff>+{stamina_regen_percentage}%</color>");
-            if (stamina_use_reduction_percent > 0) builder.Append($"\n<color={color}>•</color> $se_attackstamina: <color=#ffff80ff>-{stamina_use_reduction_percent}%</color>");
-            if (max_eitr > 0) builder.Append($"\n<color={color}>•</color> $item_food_eitr: <color=#9090ffff>+{max_eitr}</color>");
-            if (eitr_regen_percentage > 0) builder.Append($"\n<color={color}>•</color> $item_eitrregen_modifier: <color=#9090ffff>+{eitr_regen_percentage}%</color>");
-            if (API_backpacks_additionalrow_x > 0) builder.Append($"\n<color={color}>•</color> $enchantment_backpacks_additionalrow_x: <color=#7393B3>{API_backpacks_additionalrow_x}</color>");
-            if (API_backpacks_additionalrow_y > 0) builder.Append($"\n<color={color}>•</color> $enchantment_backpacks_additionalrow_x: <color=#7393B3>{API_backpacks_additionalrow_y}</color>");
-            
-            builder.Append(SE_Stats.GetDamageModifiersTooltipString(GetResistancePairs()).Replace("\n", $"\n<color={color}>•</color> "));
-            
+            if (damage_percentage > 0) builder.Append($"\n{GetBullet("damage_percentage", color)} $enchantment_bonusespercentdamage: +{damage_percentage}%");
+            if (damage_true > 0) builder.Append($"\n{GetBullet("damage_true", color)} $enchantment_truedamage: +{damage_true}");
+            if (damage_true_percentage > 0) builder.Append($"\n{GetBullet("damage_true_percentage", color)} $enchantment_truedamage: +{damage_true_percentage}%");
+            if (damage_fire > 0) builder.Append($"\n{GetBullet("damage_fire", color)} $inventory_fire: <color=#FFA500>+{damage_fire}</color>");
+            if (damage_fire_percentage > 0) builder.Append($"\n{GetBullet("damage_fire_percentage", color)} $inventory_fire: <color=#FFA500>+{damage_fire_percentage}%</color>");
+            if (damage_blunt > 0) builder.Append($"\n{GetBullet("damage_blunt", color)} $inventory_blunt: <color=#FFFF00>+{damage_blunt}</color>");
+            if (damage_blunt_percentage > 0) builder.Append($"\n{GetBullet("damage_blunt_percentage", color)} $inventory_blunt: <color=#FFFF00>+{damage_blunt_percentage}%</color>");
+            if (damage_slash > 0) builder.Append($"\n{GetBullet("damage_slash", color)} $inventory_slash: <color=#7F00FF>+{damage_slash}</color>");
+            if (damage_slash_percentage > 0) builder.Append($"\n{GetBullet("damage_slash_percentage", color)} $inventory_slash: <color=#7F00FF>+{damage_slash_percentage}%</color>");
+            if (damage_pierce > 0) builder.Append($"\n{GetBullet("damage_pierce", color)} $inventory_pierce: <color=#D499B9>+{damage_pierce}</color>");
+            if (damage_pierce_percentage > 0) builder.Append($"\n{GetBullet("damage_pierce_percentage", color)} $inventory_pierce: <color=#D499B9>+{damage_pierce_percentage}%</color>");
+            if (damage_chop > 0) builder.Append($"\n{GetBullet("damage_chop", color)} $enchantment_chopdamage: <color=#FFAF00>+{damage_chop}</color>");
+            if (damage_chop_percentage > 0) builder.Append($"\n{GetBullet("damage_chop_percentage", color)} $enchantment_chopdamage: <color=#FFAF00>+{damage_chop_percentage}%</color>");
+            if (damage_pickaxe > 0) builder.Append($"\n{GetBullet("damage_pickaxe", color)} $enchantment_pickaxedamage: <color=#FF00FF>+{damage_pickaxe}</color>");
+            if (damage_pickaxe_percentage > 0) builder.Append($"\n{GetBullet("damage_pickaxe_percentage", color)} $enchantment_pickaxedamage: <color=#FF00FF>+{damage_pickaxe_percentage}%</color>");
+            if (damage_frost > 0) builder.Append($"\n{GetBullet("damage_frost", color)} $inventory_frost: <color=#00FFFF>+{damage_frost}</color>");
+            if (damage_frost_percentage > 0) builder.Append($"\n{GetBullet("damage_frost_percentage", color)} $inventory_frost: <color=#00FFFF>+{damage_frost_percentage}%</color>");
+            if (damage_lightning > 0) builder.Append($"\n{GetBullet("damage_lightning", color)} $inventory_lightning: <color=#0000FF>+{damage_lightning}</color>");
+            if (damage_lightning_percentage > 0) builder.Append($"\n{GetBullet("damage_lightning_percentage", color)} $inventory_lightning: <color=#0000FF>+{damage_lightning_percentage}%</color>");
+            if (damage_poison > 0) builder.Append($"\n{GetBullet("damage_poison", color)} $inventory_poison: <color=#00FF00>+{damage_poison}</color>");
+            if (damage_poison_percentage > 0) builder.Append($"\n{GetBullet("damage_poison_percentage", color)} $inventory_poison: <color=#00FF00>+{damage_poison_percentage}%</color>");
+            if (damage_spirit > 0) builder.Append($"\n{GetBullet("damage_spirit", color)} $inventory_spirit: <color=#FFFFA0>+{damage_spirit}</color>");
+            if (damage_spirit_percentage > 0) builder.Append($"\n{GetBullet("damage_spirit_percentage", color)} $inventory_spirit: <color=#FFFFA0>+{damage_spirit_percentage}%</color>");
+            if (attack_speed > 0) builder.Append($"\n{GetBullet("attack_speed", color)} $enchantment_attackspeed: <color=#DF745D>+{attack_speed}%</color>");
+            if (movement_speed > 0) builder.Append($"\n{GetBullet("movement_speed", color)} $enchantment_movementspeed: <color=#DF745D>+{movement_speed}%</color>");
+            if (movement_skill > 0) builder.Append($"\n{GetBullet("movement_skill", color)} $enchantment_movement_skill: <color=#DF745D>+{movement_skill}</color>");
+            if (weapon_skill > 0) builder.Append($"\n{GetBullet("weapon_skill", color)} $enchantment_matching_weapon_skill: <color=#FFA500>+{weapon_skill}</color>");
+            if (armor > 0) builder.Append($"\n{GetBullet("armor", color)} $item_armor: <color=#808080>+{armor}</color>");
+            if (armor_percentage > 0) builder.Append($"\n{GetBullet("armor_percentage", color)} $enchantment_bonusespercentarmor: <color=#808080>+{armor_percentage}%</color>");
+            if (durability > 0) builder.Append($"\n{GetBullet("durability", color)} $item_durability: <color=#7393B3>+{durability}</color>");
+            if (durability_percentage > 0) builder.Append($"\n{GetBullet("durability_percentage", color)} $item_durability: <color=#7393B3>+{durability_percentage}%</color>");
+            if (max_hp > 0) builder.Append($"\n{GetBullet("max_hp", color)} $se_health: <color=#ff8080ff>+{max_hp}</color>");
+            if (hp_regen > 0) builder.Append($"\n{GetBullet("hp_regen", color)} $se_healthregen: <color=#ff8080ff>+{hp_regen}/10s</color>");
+            if (stagger_limit_percentage > 0) builder.Append($"\n{GetBullet("stagger_limit_percentage", color)} $enchantment_stagger_limit: <color=#dd9090ff>+{stagger_limit_percentage}%</color>");
+            if (stagger_recovery_percentage > 0) builder.Append($"\n{GetBullet("stagger_recovery_percentage", color)} $enchantment_stagger_recovery: <color=#dd9090ff>+{stagger_recovery_percentage}%</color>");
+            if (max_stamina > 0) builder.Append($"\n{GetBullet("max_stamina", color)} $se_stamina: <color=#ffff80ff>+{max_stamina}</color>");
+            if (stamina_regen > 0) builder.Append($"\n{GetBullet("stamina_regen", color)} $se_staminaregen: <color=#ffff80ff>+{stamina_regen}/s</color>");
+            if (stamina_regen_percentage > 0) builder.Append($"\n{GetBullet("stamina_regen_percentage", color)} $se_staminaregen: <color=#ffff80ff>+{stamina_regen_percentage}%</color>");
+            if (stamina_use_reduction_percent > 0) builder.Append($"\n{GetBullet("stamina_use_reduction_percent", color)} $se_attackstamina: <color=#ffff80ff>-{stamina_use_reduction_percent}%</color>");
+            if (max_eitr > 0) builder.Append($"\n{GetBullet("max_eitr", color)} $item_food_eitr: <color=#9090ffff>+{max_eitr}</color>");
+            if (eitr_regen_percentage > 0) builder.Append($"\n{GetBullet("eitr_regen_percentage", color)} $item_eitrregen_modifier: <color=#9090ffff>+{eitr_regen_percentage}%</color>");
+            if (API_backpacks_additionalrow_x > 0) builder.Append($"\n{GetBullet("API_backpacks_additionalrow_x", color)} $enchantment_backpacks_additionalrow_x: <color=#7393B3>{API_backpacks_additionalrow_x}</color>");
+            if (API_backpacks_additionalrow_y > 0) builder.Append($"\n{GetBullet("API_backpacks_additionalrow_y", color)} $enchantment_backpacks_additionalrow_x: <color=#7393B3>{API_backpacks_additionalrow_y}</color>");
+
+            builder.Append(SE_Stats.GetDamageModifiersTooltipString(GetResistancePairs()).Replace("\n", $"\n<color={color}>◆</color> "));
+
             builder.Append("\n");
             cached_tooltip = builder.ToString();
             return cached_tooltip;
@@ -619,6 +629,7 @@ public static class SyncedData
         {
             var multipliedStats = new Stat_Data();
             if (item == null || item.effects == null) return multipliedStats;
+            multipliedStats._sourceEffects = item;
             foreach (var field in typeof(Stat_Data).GetFields(BindingFlags.Public | BindingFlags.Instance))
             {
                 var baseValue = Convert.ToDouble(field.GetValue(this));

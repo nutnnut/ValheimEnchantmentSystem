@@ -74,7 +74,6 @@
     <Compile Include="UI\NotificationsUI.cs" />
     <Compile Include="UI\SettingsUI.cs" />
     <Compile Include="Utils\TerminalCommands.cs" />
-    <Compile Include="Utils\TooltipAdjuster.cs" />
     <Compile Include="Utils\Utils.cs" />
     <Compile Include="ValheimEnchantmentSystem.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

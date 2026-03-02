@@ -15,6 +15,7 @@ public static class Player_SetMaxStamina_Patch
 }
 
 [HarmonyPatch(typeof(SEMan), nameof(SEMan.ModifyStaminaRegen))]
+[ClientOnlyPatch]
 public static class SEMan_ModifyStaminaRegen_Patch
 {
     public static void Postfix(SEMan __instance, ref float staminaMultiplier)

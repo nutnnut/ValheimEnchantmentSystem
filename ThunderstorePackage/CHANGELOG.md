@@ -1,4 +1,5 @@
 #### Version 0.2.4
+- Added new bonuses bullet point symbols for below average roll and top roll
 - Fixed some bonuses also applying to enemies/unintended entities
 - Fixed not being to reroll when at max level
 - Fixed blessed reroll not preventing failedEnchant

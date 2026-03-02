@@ -13,10 +13,7 @@ namespace kg.ValheimEnchantmentSystem
     {
         private const string GUID = "kg.ValheimEnchantmentSystem";
         private const string PLUGIN_NAME = "Chaos Valheim Enchantment System";
-        private const string PLUGIN_VERSION = "0.2.3";
-
-
-
+        private const string PLUGIN_VERSION = "0.2.4";
 
         public static ValheimEnchantmentSystem _thistype;  
         public static AssetBundle _asset; 
@@ -27,7 +24,7 @@ namespace kg.ValheimEnchantmentSystem
         public static readonly ConfigSync ConfigSync = new(GUID)
         {  
             DisplayName = GUID, ModRequired = true,
-            MinimumRequiredVersion = "0.2.3", CurrentVersion = "0.2.3",
+            MinimumRequiredVersion = PLUGIN_VERSION, CurrentVersion = PLUGIN_VERSION,
             IsLocked = true   
         };
         private enum WorkingAs { Client, Server }
